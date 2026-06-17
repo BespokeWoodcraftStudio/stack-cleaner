@@ -5,9 +5,9 @@ import { usePathname } from "next/navigation";
 import { Logo, Github } from "./icons";
 
 const LINKS = [
-  { href: "/", label: "Home" },
-  { href: "/setup", label: "Setup" },
-  { href: "/inventory", label: "Inventory" },
+  { href: "/", label: "Home", hideSm: true }, // logo already links home
+  { href: "/setup", label: "Setup", hideSm: false },
+  { href: "/inventory", label: "Inventory", hideSm: false },
 ];
 
 const REPO = "https://github.com/BespokeWoodcraftStudio/claude-inventory-tool";
@@ -25,7 +25,7 @@ export function Nav() {
           {LINKS.map((l) => {
             const active = l.href === "/" ? path === "/" : path.startsWith(l.href);
             return (
-              <Link key={l.href} href={l.href} className={`nav-link${active ? " active" : ""}`}>
+              <Link key={l.href} href={l.href} className={`nav-link${active ? " active" : ""}${l.hideSm ? " hide-sm" : ""}`}>
                 {l.label}
               </Link>
             );
