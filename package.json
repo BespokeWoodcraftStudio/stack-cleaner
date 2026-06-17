@@ -1,0 +1,24 @@
+{
+  "name": "claude-inventory-tool",
+  "version": "1.0.0",
+  "private": false,
+  "license": "MIT",
+  "description": "See, organize, and clean up your Claude Code skills, plugins, MCP servers, and agents — split by global vs. project.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "scan": "node public/scan.mjs"
+  },
+  "dependencies": {
+    "next": "^15.5.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "typescript": "^5.7.0"
+  }
+}
