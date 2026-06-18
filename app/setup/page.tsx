@@ -9,12 +9,12 @@ import { OsTabs } from "@/components/setup/OsTabs";
 export const metadata: Metadata = {
   title: "Setup",
   description:
-    "A friendly, step-by-step walkthrough to load your Claude Code inventory in about two minutes. No coding, no GitHub, 100% local.",
+    "A friendly, step-by-step walkthrough to load your Claude inventory in about two minutes. No coding, no GitHub, 100% local.",
   alternates: { canonical: "/setup" },
   openGraph: {
     title: "Set up the Claude Inventory Tool in 2 minutes",
     description:
-      "A friendly, step-by-step walkthrough to load your Claude Code inventory in about two minutes. No coding, no GitHub, 100% local.",
+      "A friendly, step-by-step walkthrough to load your Claude inventory in about two minutes. No coding, no GitHub, 100% local.",
     url: "/setup",
   },
 };
@@ -121,7 +121,7 @@ export default function Setup() {
 
           <div className="card card-2" style={{ marginTop: 18, padding: "16px 18px" }}>
             <p className="setup-text" style={{ margin: 0 }}>
-              <strong>What it does, plainly:</strong> it looks at your own Claude Code setup and
+              <strong>What it does, plainly:</strong> it looks at your own Claude setup and
               writes a small file called <code className="inline">claude-inventory.json</code> right
               where the terminal is pointing. It doesn&apos;t change anything on your computer, and
               it doesn&apos;t send anything anywhere.

@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { MARK_DATA_URI } from "@/lib/og-mark";
 
-export const alt = "Claude Inventory Tool — see, organize, and clean up your Claude Code setup";
+export const alt = "Claude Inventory Tool — see, organize, and clean up your Claude setup";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -46,7 +46,7 @@ export default function OpengraphImage() {
             Claude Inventory Tool
           </div>
           <div style={{ display: "flex", fontSize: 37, color: "#d8cfc4", lineHeight: 1.32, maxWidth: 1000 }}>
-            See, organize, and clean up your Claude Code skills, plugins, MCP servers &amp; agents — split by global vs. project.
+            See, organize, and clean up your Claude skills, plugins, MCP servers &amp; agents — split by global vs. project.
           </div>
         </div>
 

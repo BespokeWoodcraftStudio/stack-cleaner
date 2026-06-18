@@ -11,7 +11,7 @@ Please use a **private** channel. Do not open a public GitHub issue for a securi
 Two ways, in order of preference:
 
 1. **GitHub private advisory (preferred).** Go to the repo's **Security** tab → **Report a vulnerability**. This opens a private security advisory that only the maintainer can see.
-2. **Email.** Write to **ahmed@bespokewoodcraftstudio.com**.
+2. **Email.** Write to **info@pixelventuresllc.com**.
 
 That's it. There are no other contacts — if you see an address like `security@…` somewhere, it isn't ours.
 

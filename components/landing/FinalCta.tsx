@@ -8,7 +8,7 @@ export function FinalCta() {
       <div className="container-narrow stack center lp-final-inner">
         <span className="eyebrow">Ready when you are</span>
         <h2 id="lp-final-title" className="section-title lp-section-title lp-center">
-          See what&rsquo;s really in your Claude Code setup
+          See what&rsquo;s really in your Claude setup
         </h2>
         <p className="lead lp-center lp-final-lead">
           Poke around the demo with no setup at all, or scan your own machine and

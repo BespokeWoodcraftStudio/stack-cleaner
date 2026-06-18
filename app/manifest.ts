@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Claude Inventory Tool",
     short_name: "Claude Inventory",
     description:
-      "See, organize, and clean up your Claude Code skills, plugins, MCP servers, and agents — split by global vs. project. Runs locally, sends nothing.",
+      "See, organize, and clean up your Claude skills, plugins, MCP servers, and agents — split by global vs. project. Runs locally, sends nothing.",
     start_url: "/",
     display: "standalone",
     background_color: "#141210",

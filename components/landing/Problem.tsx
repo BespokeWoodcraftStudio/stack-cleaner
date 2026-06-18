@@ -1,5 +1,5 @@
 /**
- * The problem — short, scannable. Claude Code installs pile up across global +
+ * The problem — short, scannable. Claude installs pile up across global +
  * every project, and you lose track of what you have, use, and what's just noise.
  */
 export function Problem() {
@@ -8,7 +8,7 @@ export function Problem() {
       <div className="container-narrow">
         <span className="eyebrow">The problem</span>
         <h2 id="lp-problem-title" className="section-title lp-section-title">
-          Your Claude Code setup grows faster than you can keep track of it
+          Your Claude setup grows faster than you can keep track of it
         </h2>
         <p className="lead lp-problem-lead">
           Every install adds up &mdash; a skill here, a plugin there, an MCP server you

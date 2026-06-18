@@ -129,7 +129,7 @@ export function UploadPanel({
         <div className="card stack gap-3">
           <div className="row gap-2"><Terminal size={16} /><strong style={{ fontSize: 14 }}>Don&apos;t have the file yet?</strong></div>
           <p className="muted" style={{ fontSize: 14 }}>
-            Run this in your terminal. It reads your local Claude Code install and writes
+            Run this in your terminal. It reads your local Claude setup and writes
             <code className="inline"> claude-inventory.json</code> next to you. Zero dependencies, nothing sent anywhere.
           </p>
           <ScanCommand />

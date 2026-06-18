@@ -42,7 +42,7 @@ const FEATURES = [
     tone: "var(--project)",
     title: "Hand the cleanup to Claude",
     body:
-      "Prefer to delegate? Export a paste-to-Claude prompt and let Claude Code do the removal for you, step by step. The tool only generates commands — it never deletes anything itself.",
+      "Prefer to delegate? Export a paste-to-Claude prompt and let Claude do the removal for you, step by step. The tool only generates commands — it never deletes anything itself.",
   },
 ];
 

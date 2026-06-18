@@ -19,13 +19,13 @@ export function Hero() {
             </span>
 
             <h1 className="lp-h1">
-              See every Claude skill you&rsquo;ve installed&nbsp;&mdash;{" "}
+              See everything you&rsquo;ve installed in Claude&nbsp;&mdash;{" "}
               <span className="lp-accent">and tidy up the ones you forgot</span>
             </h1>
 
             <p className="lead lp-subhead">
               A free tool that maps every skill, plugin, MCP server, and agent in your
-              Claude Code setup &mdash; split by global vs. project, with real usage
+              Claude setup &mdash; split by global vs. project, with real usage
               counts &mdash; so you can clean out the clutter in minutes.
             </p>
 

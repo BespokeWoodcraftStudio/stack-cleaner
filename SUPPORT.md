@@ -3,7 +3,7 @@
 Need a hand? Here's where to go.
 
 - **Found a bug?** Open a [GitHub issue](https://github.com/BespokeWoodcraftStudio/claude-inventory-tool/issues). Tell us what you ran, what you expected, and what happened — and your OS and Node version (`node --version`) help a lot.
-- **Have a question?** Start a [GitHub Discussion](https://github.com/BespokeWoodcraftStudio/claude-inventory-tool/discussions), or email [ahmed@bespokewoodcraftstudio.com](mailto:ahmed@bespokewoodcraftstudio.com). For conceptual questions ("what counts as a project?", "why is this passive?"), the [FAQ](docs/FAQ.md) probably has it.
+- **Have a question?** Start a [GitHub Discussion](https://github.com/BespokeWoodcraftStudio/claude-inventory-tool/discussions), or email [info@pixelventuresllc.com](mailto:info@pixelventuresllc.com). For conceptual questions ("what counts as a project?", "why is this passive?"), the [FAQ](docs/FAQ.md) probably has it.
 - **Found a security problem — especially a real secret that landed in `claude-inventory.json`?** Do **not** open a public issue. Follow [SECURITY.md](SECURITY.md): rotate the exposed credential first, then report it privately through the repo's Security tab ("Report a vulnerability") or by email. A leaked secret must never go in a public issue.
 
 If you'd like to help fix something rather than just report it, see [CONTRIBUTING.md](CONTRIBUTING.md).
@@ -76,4 +76,4 @@ Both run the same scan and write the same `claude-inventory.json`.
 
 ---
 
-Still stuck? Open a [Discussion](https://github.com/BespokeWoodcraftStudio/claude-inventory-tool/discussions) or email [ahmed@bespokewoodcraftstudio.com](mailto:ahmed@bespokewoodcraftstudio.com). For the bigger picture, see [docs/USAGE.md](docs/USAGE.md) and [docs/FAQ.md](docs/FAQ.md); for anything secret-related, [SECURITY.md](SECURITY.md).
+Still stuck? Open a [Discussion](https://github.com/BespokeWoodcraftStudio/claude-inventory-tool/discussions) or email [info@pixelventuresllc.com](mailto:info@pixelventuresllc.com). For the bigger picture, see [docs/USAGE.md](docs/USAGE.md) and [docs/FAQ.md](docs/FAQ.md); for anything secret-related, [SECURITY.md](SECURITY.md).
