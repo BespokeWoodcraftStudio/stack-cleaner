@@ -52,7 +52,13 @@ If that still gives you trouble, the [Setup page](https://claude-inventory-tool.
 
 **Cause:** A network, firewall, or proxy is blocking the download from `claude-inventory-tool.vercel.app`.
 
-**Fix:** Self-host the scanner instead — it doesn't need the network at all:
+**Fix (easiest):** Skip `curl` entirely and run the published package through npm:
+
+```bash
+npx claude-inventory-tool
+```
+
+If npm is also blocked or you'd rather not hit the network at all, self-host the scanner straight from the source:
 
 ```bash
 git clone https://github.com/BespokeWoodcraftStudio/claude-inventory-tool
@@ -60,7 +66,7 @@ cd claude-inventory-tool
 node public/scan.mjs
 ```
 
-That runs the same scan straight from the source and writes the same `claude-inventory.json`.
+Both run the same scan and write the same `claude-inventory.json`.
 
 ### "My data disappeared"
 

@@ -57,15 +57,39 @@ The badge on the right of each row is the signal you're hunting by. There are fi
 
 | Badge | Class | What it means |
 |-------|-------|---------------|
-| **Used** | `good` | It has real usage — skills and plugins carry actual counts from Claude Code's own tables. Keep it. |
+| **Used** | `good` | It has real usage — a live invocation count from your transcripts (skills, agents, MCP servers) or Claude Code's own tables (skills, plugins). Keep it. |
 | **Unused (recent)** | `warn` | No usage yet, but it might be new. Look before you delete — it could just be freshly installed. |
 | **Unused** | `bad` | No usage and not recent. The prime candidate for removal. |
 | **Passive** | `info` | Works through a hook or is always-on, so a usage count doesn't apply. Not dead — just silent. |
-| **No signal** | `unknown` | No usage data at all. MCP servers and agents land here, because local config records no usage for them. |
+| **No signal** | `unknown` | No usage data at all — e.g. you scanned with `--no-transcripts`, or nothing in your transcripts matched this item. |
 
 The exact label often shows the raw count from your setup ("✅ 461 calls", "⚠️ never"),
 but the underlying class is one of the five above. "Unused" and "Unused (recent)" are
 what the tool counts together as **unused** in the stat strip and filters.
+
+### Where the usage signal comes from
+
+Those counts are **real invocations**, not guesses. When you scan, the script streams your
+local Claude Code transcripts (`~/.claude/projects/*.jsonl`) and tallies how many times each
+skill, agent, and MCP server was actually called, plus the most recent time you used each.
+That's what lets the tool flag the thing you *installed but never used* — and it works for MCP
+servers and agents too, which carry no usage count in plain config. (Skills and plugins also
+keep their counts from Claude Code's own `skillUsage` / `pluginUsage` tables.)
+
+The transcript read extracts **only** the tool / skill / agent / MCP-server names, the counts,
+and the timestamps — never your prompts, message text, tool arguments, file paths, or command
+contents. Nothing leaves your machine; the counts go into `claude-inventory.json` and stay there
+until you choose to upload the file.
+
+If you'd rather not have the scan read your transcripts at all, run it with **`--no-transcripts`**:
+
+```bash
+npx claude-inventory-tool --no-transcripts
+# or, from a downloaded script:  node claude-inventory-scan.mjs --no-transcripts
+```
+
+You'll still get the full inventory — just without the per-item invocation counts, so skills,
+agents, and MCP servers fall back to the **No signal** badge.
 
 ---
 

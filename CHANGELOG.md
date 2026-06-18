@@ -18,11 +18,42 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-06-17
+
+### Fixed
+
+- The published npm package no longer declares `next` / `react` / `react-dom` as
+  runtime dependencies, so `npx claude-inventory-tool` installs nothing beyond the
+  zero-dependency scanner (it uses only Node built-ins). Those packages power the
+  web app and are now dev/build-only; Vercel still installs them during the build.
+
+## [1.1.0] - 2026-06-17
+
 Readiness and productization work, getting the tool ready for a wider audience.
-No `schemaVersion` bump — files produced by the 1.0.0 scanner still parse.
+No `schemaVersion` bump — files produced by the 1.0.0 scanner still parse, and an
+older app still reads the new fields (they're all optional and additive).
 
 ### Added
 
+- **An `npx` entry point for the scanner.** Run `npx claude-inventory-tool`
+  (or `npm i -g claude-inventory-tool` then `claude-inventory-tool`) to scan with
+  one command — identical on macOS, Windows, and Linux, with no `curl … | node`
+  pipe. It runs the same `scan.mjs`, just delivered through npm; the curl
+  one-liners stay as the read-it-first / no-npm alternatives. New flags carried
+  through: `--stdout`/`--print`, `--out <file>`, `--transcripts-dir <dir>`, and
+  `--no-transcripts`.
+- **Real usage counts for skills, agents, and MCP servers from your transcripts.**
+  The scan now streams your local Claude Code session logs
+  (`~/.claude/projects/*.jsonl`) and counts how many times each item was actually
+  invoked, plus when it was last used — so the tool can finally surface
+  *installed but never used*, even for MCP servers and agents, which carry no
+  usage count in plain config. New optional JSON fields per item
+  (`invocationCount`, `lastUsed`, `usageSource`) and a top-level `usageSummary`;
+  all additive, so older files still parse. **Privacy:** the transcript read
+  extracts **only** tool / skill / agent / MCP-server names, counts, and
+  timestamps — never prompt or message text, tool arguments, file paths, `cwd`,
+  or command contents — and it all stays local until you choose to upload.
+  Opt out with `--no-transcripts`. See `SECURITY.md` for the full handling note.
 - Social-preview (Open Graph / Twitter) image, plus `robots`, `sitemap`,
   a web app manifest, and canonical URLs for the three routes — so links shared
   to the tool render a card, and the pages are indexable.
@@ -31,6 +62,12 @@ No `schemaVersion` bump — files produced by the 1.0.0 scanner still parse.
 - An in-app FAQ, and a full docs set: `SECURITY.md`, `CONTRIBUTING.md`,
   `SUPPORT.md`, `CODE_OF_CONDUCT.md`, `docs/FAQ.md`, `docs/USAGE.md`, and
   GitHub issue / pull-request templates.
+
+### Changed
+
+- MCP servers and agents are no longer shown as *passive* by default — with the
+  transcript signal they now carry real invocation counts, and only fall back to
+  **No signal** when nothing matched (or you scanned with `--no-transcripts`).
 
 ### Fixed
 

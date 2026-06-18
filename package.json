@@ -1,21 +1,33 @@
 {
   "name": "claude-inventory-tool",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "private": false,
   "license": "MIT",
   "description": "See, organize, and clean up your Claude Code skills, plugins, MCP servers, and agents — split by global vs. project.",
+  "bin": {
+    "claude-inventory-tool": "bin/cli.mjs"
+  },
+  "files": [
+    "bin",
+    "public/scan.mjs",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "scan": "node public/scan.mjs"
   },
-  "dependencies": {
+  "comment:deps": "The published package is the CLI (bin/cli.mjs + public/scan.mjs), which uses only Node built-ins — so it has no runtime dependencies and `npx claude-inventory-tool` installs nothing extra. next/react/react-dom power the web app and are dev/build-only (Vercel installs devDependencies during the build).",
+  "dependencies": {},
+  "devDependencies": {
     "next": "^15.5.4",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
-  },
-  "devDependencies": {
+    "react-dom": "^19.1.0",
     "@types/node": "^22.10.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",

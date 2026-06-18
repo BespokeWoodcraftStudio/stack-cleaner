@@ -210,6 +210,16 @@ textarea.input { resize: vertical; font-family: var(--mono); font-size: 12.5px; 
 .stat-cell { background: transparent; border: none; cursor: pointer; text-align: left; transition: background .14s; }
 .stat-cell:hover, .stat-cell:focus-visible { background: var(--panel-2); }
 .stat-cell:hover .lbl { color: var(--fg-soft); }
+/* transcript-derived cells describe the scan, not a filter — no pointer affordance */
+.stat-cell.static { cursor: default; }
+.stat-cell.static:hover { background: transparent; }
+.stat-cell.static:hover .lbl { color: var(--dim); }
+
+/* ---------- usage (transcript signal) ---------- */
+.usage-summary strong { font-weight: 650; }
+.usage-summary .chip .count { color: var(--bad); font-weight: 700; }
+/* subtle "last used Nd ago" hint on item rows */
+.usage-last { font-size: 11.5px; opacity: .9; white-space: nowrap; }
 
 /* ---------- section headings ---------- */
 .eyebrow {

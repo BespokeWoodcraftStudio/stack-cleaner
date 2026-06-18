@@ -19,6 +19,14 @@ export type Scope = "global" | "project";
  */
 export type UsageClass = "good" | "warn" | "bad" | "info" | "unknown";
 
+/**
+ * Where an item's usage signal came from:
+ *  - "transcripts"  matched against ~/.claude/projects/*.jsonl invocations
+ *  - "claude-json"  derived from ~/.claude.json usage counters
+ *  - "none"         no usage signal available
+ */
+export type UsageSource = "transcripts" | "claude-json" | "none";
+
 export interface InventoryItem {
   /** Stable unique id, e.g. "skill:global:graphify" or "mcp:project:my-app:ahrefs". */
   id: string;
@@ -47,6 +55,14 @@ export interface InventoryItem {
   /** Short usage label for display, e.g. "✅ 461 calls" or "never". */
   usageLabel?: string;
 
+  // ---- transcript usage signal (optional) ----
+  /** Transcript invocations matched to this item (0 = tracked but never used). */
+  invocationCount?: number;
+  /** Epoch ms of most recent transcript invocation, or null. */
+  lastUsed?: number | null;
+  /** Where the usage signal came from. */
+  usageSource?: UsageSource;
+
   // ---- curation (optional, demo-only / user-added) ----
   /** Note about other items this overlaps/duplicates. */
   overlap?: string;
@@ -65,4 +81,20 @@ export interface Inventory {
   /** Project basenames discovered, for the project filter. */
   projects: string[];
   items: InventoryItem[];
+  /** Aggregate transcript-usage stats, when a transcript scan ran. */
+  usageSummary?: UsageSummary;
+}
+
+/** Aggregate usage stats produced by the transcript scan. */
+export interface UsageSummary {
+  /** Sum of ALL transcript invocations (including keys not matched to an item). */
+  totalInvocations: number;
+  /** Items with invocationCount > 0. */
+  itemsWithUsage: number;
+  /** Tracked items (skill/agent/mcp) with invocationCount === 0. */
+  itemsUnused: number;
+  /** Number of .jsonl transcript files parsed. */
+  transcriptsScanned: number;
+  /** "transcripts" when the transcript scan produced this summary. */
+  generatedFrom?: string;
 }

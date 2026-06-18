@@ -92,8 +92,10 @@ Open a [GitHub issue](https://github.com/BespokeWoodcraftStudio/claude-inventory
 
 A few additions we'd genuinely like, sized for a first contribution:
 
-- **Transcript-derived usage for MCP servers and agents.** Right now MCP servers and agents have no usage signal in local config, so they show as *passive*. Deriving real usage from Claude Code's transcripts would close that gap.
-- **An `npx` entry point for the scanner**, so people can run it without `curl … | node`.
 - **More cleanup-command coverage** — additional `removeCmd` shapes in `deriveRemoveCmd` (`lib/inventory.ts`) and the per-type commands in `scan.mjs`.
+- **Richer usage views** — the transcript scan already records invocation counts and last-used timestamps; surfacing trends (e.g. "used a lot last month, nothing since") would build on that.
+- **Broader plugin-marketplace detection** — recognizing more install layouts in the plugin scan.
+
+(Two earlier asks — transcript-derived usage for MCP servers and agents, and an `npx` entry point for the scanner — have since shipped; see [CHANGELOG.md](CHANGELOG.md).)
 
 When you open a PR, fill out the [pull request template](.github/PULL_REQUEST_TEMPLATE.md) — it's just the verify gate in checklist form.

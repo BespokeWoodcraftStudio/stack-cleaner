@@ -77,4 +77,15 @@ A quick reassurance, since the output describes your tooling:
 
 One documented caveat: skill and agent **descriptions** are prose copied from frontmatter. We do run a best-effort scrub over them (obvious token shapes like `sk-…`, `ghp_…`, and `Authorization: …` are redacted), but that pass is not a guarantee — so don't keep secrets in a `SKILL.md` or agent description.
 
+## How transcripts are handled
+
+To compute real usage counts, the scan reads your local Claude Code transcripts (`~/.claude/projects/*.jsonl`). This is deliberately narrow:
+
+- **Names, counts, and timestamps only.** The scanner streams each transcript line by line and extracts **only** the tool / skill / agent / MCP-server name, increments a counter, and keeps the most recent timestamp. That's all that reaches `claude-inventory.json`.
+- **What it never reads or emits.** It does not read or record your prompts, message or response text, tool arguments, `cwd`, file paths or file contents, or `Bash` command text. None of that is parsed out of the transcript, so none of it can leak into the output.
+- **Local until you upload.** Like the rest of the scan, this happens entirely on your machine and makes no network call. The counts only leave your device if you choose to upload `claude-inventory.json` to the web app (which still parses it only in your browser).
+- **Opt out completely.** Run the scan with **`--no-transcripts`** to skip the transcript read entirely. You'll still get the full inventory, just without per-item invocation counts.
+
+If you find the transcript pass emitting anything beyond names, counts, and timestamps, treat it as a redaction miss and report it privately using the steps above.
+
 For more, see the [Privacy & safety](README.md#privacy--safety) section of the README and [docs/FAQ.md](docs/FAQ.md). Related docs: [CONTRIBUTING.md](CONTRIBUTING.md), [SUPPORT.md](SUPPORT.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), [CHANGELOG.md](CHANGELOG.md), and [docs/USAGE.md](docs/USAGE.md).

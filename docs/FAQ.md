@@ -10,6 +10,8 @@ No. The scan runs on your machine and never makes a network request. The web app
 
 It reads your Claude Code setup: skills, plugins, MCP servers, and agents. It pulls from the usual places — `SKILL.md` frontmatter for skills, `*.md` files for agents, `installed_plugins.json` for plugins, and `~/.claude.json` plus per-project `.mcp.json` for MCP servers.
 
+It also reads your local **transcripts** (`~/.claude/projects/*.jsonl`) to count how often each skill, agent, and MCP server was actually invoked — but **only** the names, counts, and timestamps, never prompt or message contents. See [How does it know what I actually use?](#how-does-it-know-what-i-actually-use) for the privacy details and the `--no-transcripts` opt-out.
+
 It enumerates **every project** Claude Code knows about (from `~/.claude.json`), not just the folder you run it in. So one scan gives you your whole picture, global and per-project.
 
 ## Can it delete or change anything?
@@ -35,9 +37,15 @@ There is **one caveat**: skill and agent descriptions are prose copied from thei
 
 No. The [Setup page](https://claude-inventory-tool.vercel.app/setup) is a copy-paste wizard. You copy one line, paste it into your terminal, press Enter, and drop the resulting file into the tool. No GitHub account, no coding.
 
-## Why are MCP servers and agents shown as "passive"?
+## How does it know what I actually use?
 
-Because there's no usage signal for them in local config. Claude Code records usage counts for skills and plugins (in its `skillUsage` / `pluginUsage` tables), so those show real numbers. MCP servers and agents have nothing equivalent, so the tool marks them *passive* rather than guess.
+The scan reads your local Claude Code **transcripts** — the session logs under `~/.claude/projects/*.jsonl` — and counts how many times each skill, agent, and MCP server was actually invoked, along with the most recent time each was used. That's what powers the "installed but never used" signal, and it works even for MCP servers and agents, which carry no usage count in plain config.
+
+It reads **only the names** (the tool / skill / agent / MCP-server name), the **counts**, and the **timestamps**. It never reads or records your prompts, message text, tool arguments, file paths, `cwd`, or command contents. The transcript files are streamed line by line and only those few fields are extracted.
+
+Everything stays on your machine; the counts land in `claude-inventory.json` and go nowhere until *you* choose to upload that file to the web app (which still parses it only in your browser).
+
+Don't want the scan to look at transcripts at all? Run it with `--no-transcripts`. You'll still get the full inventory — just without the per-item invocation counts for skills, agents, and MCP servers.
 
 ## Where is the file saved?
 
@@ -49,8 +57,9 @@ Yes. The [Setup page](https://claude-inventory-tool.vercel.app/setup) gives you 
 
 ## I don't trust "curl | node" — what else can I do?
 
-That's a healthy instinct. You have options:
+That's a healthy instinct. You have options, lightest-touch first:
 
+- **Use npx — no pipe, no curl.** Run `npx claude-inventory-tool`. npm fetches the published, versioned package and runs it. It's the same code as `/scan.mjs`, just delivered through npm instead of a shell pipe.
 - **Download and read it first.** Save `scan.mjs` to disk, open it, read it (it's one short, dependency-free file), then run `node scan.mjs`.
 - **Clone the repo and run it from source.** `git clone`, then `node public/scan.mjs`.
 

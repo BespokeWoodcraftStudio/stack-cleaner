@@ -32,6 +32,17 @@ This tool answers them. You run one command, it reads your local Claude Code ins
 
 ### The scan
 
+**The one command** — same on macOS, Windows, and Linux, no `curl`, nothing piped:
+
+```bash
+npx claude-inventory-tool
+```
+
+It runs the published npm package (which bundles the same scanner) and writes `claude-inventory.json` next to you. Node ships with Claude Code, so you already have it.
+
+<details>
+<summary>Prefer not to use npm? Download the script straight from this site instead.</summary>
+
 **macOS / Linux** (bash/zsh):
 
 ```bash
@@ -44,6 +55,8 @@ curl -fsSL https://claude-inventory-tool.vercel.app/scan.mjs | node
 curl.exe -fsSL https://claude-inventory-tool.vercel.app/scan.mjs -o claude-inventory-scan.mjs; node claude-inventory-scan.mjs
 ```
 
+</details>
+
 Prefer to read it first? It's one short, dependency-free file ([`public/scan.mjs`](public/scan.mjs)) — download then run (use `curl.exe` on Windows):
 
 ```bash
@@ -55,7 +68,7 @@ node claude-inventory-scan.mjs
 
 ## What it captures
 
-For every item it records the type, the scope (global or which project), a description, and — for skills and plugins — a **real usage count**. (MCP servers and agents have no usage signal in local config, so they're shown as *passive*.)
+For every item it records the type, the scope (global or which project), a description, and a **real usage count** — how many times you've actually invoked it, and when you last did.
 
 | Type | Global source | Project source |
 |------|---------------|----------------|
@@ -64,13 +77,18 @@ For every item it records the type, the scope (global or which project), a descr
 | **MCP servers** | `~/.claude.json` → `mcpServers` | per-project `mcpServers` + `.mcp.json` |
 | **Agents** | `~/.claude/agents/*.md` | `<repo>/.claude/agents/*.md` |
 
-It enumerates **every project** Claude Code knows about (from `~/.claude.json`), not just the folder you run it in — so you get your whole picture in one pass. Usage counts come from Claude Code's own `skillUsage` / `pluginUsage` tables.
+It enumerates **every project** Claude Code knows about (from `~/.claude.json`), not just the folder you run it in — so you get your whole picture in one pass.
+
+### Where usage counts come from
+
+The scan reads your local Claude Code **transcripts** (`~/.claude/projects/*.jsonl`) to count real invocations for **skills, agents, and MCP servers** — so you can finally see what's *installed but never used*, even for the types that carry no usage count in plain config. It extracts **only the tool / skill / agent / MCP-server names, the counts, and the timestamps** — never your prompts, message text, tool arguments, file paths, or command contents. It all stays local until you choose to upload the file. Pass `--no-transcripts` to skip the transcript read entirely. (Skills and plugins also keep their counts from Claude Code's own `skillUsage` / `pluginUsage` tables.)
 
 ## Privacy & safety
 
 This is the part that matters, because the output describes your tooling.
 
 - **Runs entirely on your machine.** The scan never makes a network request. The web app parses your file in the browser and stores it only in that browser's `localStorage` — it is never uploaded.
+- **Transcripts: names and counts only.** To compute real usage it streams your local transcripts but extracts **only** tool/skill/agent/MCP-server names, counts, and timestamps — never prompt text, arguments, file paths, or command contents. Opt out with `--no-transcripts`.
 - **Secrets are stripped before the file is written.** MCP `env` values, auth headers, URL credentials, and token-looking arguments are replaced with `<redacted>`. Your home directory is rewritten to `~` so your username doesn't leak.
 - **It only reads.** The scan never modifies, installs, or removes anything. Removal commands are generated as text for *you* to review and run.
 - **No dependencies, no build step to scan.** `scan.mjs` is plain Node with `node:` built-ins only. Read the whole thing in a minute.
@@ -99,6 +117,13 @@ npm run dev        # http://localhost:3000
 node public/scan.mjs
 ```
 
+Or install the published CLI globally and run it from anywhere:
+
+```bash
+npm i -g claude-inventory-tool
+claude-inventory-tool          # writes claude-inventory.json in the current folder
+```
+
 Deploy your own copy to Vercel (or any static-capable Next host) with one click of "Import Project" — there's nothing to configure.
 
 ## The inventory schema
@@ -112,6 +137,13 @@ The scan emits, and the app reads, a single JSON shape — abbreviated below; th
   "generator": "scan.mjs@1.0.0",
   "machine": { "platform": "darwin", "node": "v22.0.0" },
   "projects": ["my-app", "my-blog"],
+  "usageSummary": {             // present when the transcript scan ran
+    "totalInvocations": 1280,
+    "itemsWithUsage": 24,
+    "itemsUnused": 11,
+    "transcriptsScanned": 4142,
+    "generatedFrom": "transcripts"
+  },
   "items": [
     {
       "id": "skill:global:graphify",
@@ -121,10 +153,13 @@ The scan emits, and the app reads, a single JSON shape — abbreviated below; th
       "name": "graphify",
       "description": "…",
       "path": "~/.claude/skills/graphify",
-      "usageCount": 10,           // skills & plugins only; null for mcp/agents
+      "usageCount": 10,           // mirrors invocationCount when matched
       "lastUsedAt": 1718000000000,
       "usageClass": "good",       // good | warn | bad | info | unknown
       "usageLabel": "✅ 10 uses", // display string
+      "invocationCount": 10,      // transcript invocations (0 = tracked, never used)
+      "lastUsed": 1718000000000,  // epoch ms of most recent invocation, or null
+      "usageSource": "transcripts", // "transcripts" | "claude-json" | "none"
       "removeCmd": "rm -rf ~/.claude/skills/graphify"
     }
   ]
@@ -157,7 +192,7 @@ components/                  ui primitives + page sections
 
 ## Contributing
 
-Issues and PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for the dev setup and the verify gate, and [SECURITY.md](SECURITY.md) for reporting a secret leak privately. Good first additions: deriving MCP/agent usage from transcripts, an `npx` entry point for the scanner, and more cleanup-command coverage.
+Issues and PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for the dev setup and the verify gate, and [SECURITY.md](SECURITY.md) for reporting a secret leak privately. Good first additions: more cleanup-command coverage, richer usage-trend views, and broader plugin-marketplace detection.
 
 ## License
 

@@ -9,6 +9,7 @@ import {
 import { demoInventory } from "@/lib/demo";
 import { UploadPanel } from "./UploadPanel";
 import { CleanupDrawer } from "./CleanupDrawer";
+import { UsageSummary, fmtCount } from "./UsageSummary";
 import { Search, Trash, Upload, Shield } from "@/components/ui/icons";
 import { CopyButton } from "@/components/ui/CopyButton";
 
@@ -122,7 +123,9 @@ export function InventoryClient() {
         </div>
       )}
 
-      <StatStrip stats={stats} filters={filters} setFilters={setFilters} />
+      <StatStrip stats={stats} inventory={inventory} filters={filters} setFilters={setFilters} />
+
+      <UsageSummary inventory={inventory} filters={filters} setFilters={setFilters} />
 
       <FilterBar inventory={inventory} stats={stats} filters={filters} setFilters={setFilters} />
 
@@ -168,30 +171,59 @@ export function InventoryClient() {
 }
 
 // ---------------- stat strip ----------------
-function StatStrip({ stats, filters, setFilters }: {
-  stats: ReturnType<typeof computeStats>; filters: Filters; setFilters: (f: Filters) => void;
+type StatCell = {
+  key: string; display: string; lbl: string; tone?: string;
+  aria: string; onClick?: () => void;
+};
+
+function StatStrip({ stats, inventory, filters, setFilters }: {
+  stats: ReturnType<typeof computeStats>; inventory: Inventory;
+  filters: Filters; setFilters: (f: Filters) => void;
 }) {
-  const cells = [
-    { num: stats.total, lbl: "total items", aria: "Show all items", onClick: () => setFilters({ ...DEFAULT_FILTERS }) },
-    { num: stats.global, lbl: "global", tone: "var(--global)", aria: "Filter to global items", onClick: () => setFilters({ ...filters, scope: "global", project: "all" }) },
-    { num: stats.project, lbl: "project", tone: "var(--project)", aria: "Filter to project items", onClick: () => setFilters({ ...filters, scope: "project" }) },
-    { num: stats.byUsage.good, lbl: "actively used", tone: "var(--good)", aria: "Filter to actively used items", onClick: () => setFilters({ ...filters, usage: "good" }) },
-    { num: stats.unusedCount, lbl: "unused", tone: "var(--bad)", aria: "Filter to unused items", onClick: () => setFilters({ ...filters, usage: "unused" }) },
+  const usage = inventory.usageSummary;
+  const cells: StatCell[] = [
+    { key: "total", display: fmtCount(stats.total), lbl: "total items", aria: "Show all items", onClick: () => setFilters({ ...DEFAULT_FILTERS }) },
+    { key: "global", display: fmtCount(stats.global), lbl: "global", tone: "var(--global)", aria: "Filter to global items", onClick: () => setFilters({ ...filters, scope: "global", project: "all" }) },
+    { key: "project", display: fmtCount(stats.project), lbl: "project", tone: "var(--project)", aria: "Filter to project items", onClick: () => setFilters({ ...filters, scope: "project" }) },
+    { key: "used", display: fmtCount(stats.byUsage.good), lbl: "actively used", tone: "var(--good)", aria: "Filter to actively used items", onClick: () => setFilters({ ...filters, usage: "good" }) },
+    { key: "unused", display: fmtCount(stats.unusedCount), lbl: "unused", tone: "var(--bad)", aria: "Filter to unused items", onClick: () => setFilters({ ...filters, usage: "unused" }) },
   ];
+  // Transcript-derived cells — only when a usage scan actually ran. Not
+  // clickable (they describe the scan, not a filter), so no onClick.
+  if (usage) {
+    cells.push(
+      { key: "invocations", display: fmtCount(usage.totalInvocations), lbl: "invocations", tone: "var(--accent-soft)", aria: `${usage.totalInvocations} total invocations seen in transcripts` },
+      { key: "transcripts", display: fmtCount(usage.transcriptsScanned), lbl: "transcripts read", aria: `${usage.transcriptsScanned} transcripts scanned` },
+    );
+  }
   return (
     <div className="card" style={{ padding: 0, overflow: "hidden", marginBottom: 16 }}>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))" }}>
-        {cells.map((c, i) => (
-          <button key={c.lbl} onClick={c.onClick}
-            className="stat stat-cell"
-            aria-label={`${c.aria} (${c.num})`}
-            title={`${c.aria} (${c.num})`}
-            style={{ padding: "18px 20px", borderLeft: i === 0 ? "none" : "1px solid var(--line)" }}
-          >
-            <span className="num" style={{ color: c.tone || "var(--fg)" }}>{c.num}</span>
-            <span className="lbl">{c.lbl}</span>
-          </button>
-        ))}
+        {cells.map((c, i) => {
+          const cellStyle = { padding: "18px 20px", borderLeft: i === 0 ? "none" : "1px solid var(--line)" } as const;
+          const inner = (
+            <>
+              <span className="num" style={{ color: c.tone || "var(--fg)" }}>{c.display}</span>
+              <span className="lbl">{c.lbl}</span>
+            </>
+          );
+          // Filter cells are buttons; transcript-derived cells just describe
+          // the scan, so they render as a non-interactive div.
+          return c.onClick ? (
+            <button key={c.key} onClick={c.onClick}
+              className="stat stat-cell"
+              aria-label={`${c.aria} (${c.display})`}
+              title={`${c.aria} (${c.display})`}
+              style={cellStyle}
+            >
+              {inner}
+            </button>
+          ) : (
+            <div key={c.key} className="stat stat-cell static" title={c.aria} aria-label={c.aria} style={cellStyle}>
+              {inner}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -293,8 +325,33 @@ function GroupSection({ label, scope, items, selected, onToggle, onSelectMany }:
 // ---------------- item row ----------------
 const TYPE_TONE: Record<ItemType, string> = { skill: "accent", plugin: "info", mcp: "project", agent: "global" };
 
+/** "today" / "3d ago" / "5w ago" / "2mo ago" — compact, low-precision. */
+function relativeTime(epochMs: number, now = Date.now()): string {
+  const diff = now - epochMs;
+  if (diff < 0) return "just now";
+  const day = 86400000;
+  const days = Math.floor(diff / day);
+  if (days <= 0) return "today";
+  if (days === 1) return "1d ago";
+  if (days < 14) return `${days}d ago`;
+  const weeks = Math.floor(days / 7);
+  if (weeks < 9) return `${weeks}w ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months}mo ago`;
+  return `${Math.floor(days / 365)}y ago`;
+}
+
 function ItemRow({ item, checked, onToggle }: { item: InventoryItem; checked: boolean; onToggle: (id: string) => void }) {
   const usageTone = USAGE_META[item.usageClass || "unknown"].tone;
+  // The scan threads transcript usage into both the new fields and the
+  // existing usageCount/lastUsedAt, so prefer the explicit new fields and
+  // fall back to the legacy ones for older scan files.
+  const invocations = item.invocationCount ?? item.usageCount ?? null;
+  const lastUsed = item.lastUsed ?? item.lastUsedAt ?? null;
+  const fromTranscripts = item.usageSource === "transcripts";
+  const usageTitle = fromTranscripts && invocations != null
+    ? `${invocations} invocation${invocations === 1 ? "" : "s"} found in your transcripts`
+    : undefined;
   return (
     <div
       className="card"
@@ -316,7 +373,14 @@ function ItemRow({ item, checked, onToggle }: { item: InventoryItem; checked: bo
           </span>
           <span className={`badge ${TYPE_TONE[item.type]}`}>{TYPE_META[item.type].label}</span>
           {item.version && <span className="badge muted">v{item.version}</span>}
-          <span className={`badge ${usageTone === "muted" ? "muted" : usageTone}`}>{item.usageLabel || USAGE_META[item.usageClass || "unknown"].label}</span>
+          <span className={`badge ${usageTone === "muted" ? "muted" : usageTone}`} title={usageTitle}>
+            {item.usageLabel || USAGE_META[item.usageClass || "unknown"].label}
+          </span>
+          {lastUsed != null && (
+            <span className="faint mono usage-last" title={`Last used ${new Date(lastUsed).toLocaleString()}`}>
+              last used {relativeTime(lastUsed)}
+            </span>
+          )}
         </div>
         {item.description && <div style={{ fontSize: 13.5, color: "var(--fg-soft)" }}>{item.description}</div>}
         {item.overlap && <div className="muted" style={{ fontSize: 12.5, fontStyle: "italic" }}>↳ also: {item.overlap}</div>}

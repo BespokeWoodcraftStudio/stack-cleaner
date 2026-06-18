@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ScanCommand } from "@/components/ui/ScanCommand";
+import { CodeBlock } from "@/components/ui/CodeBlock";
 import { Terminal, Shield, Check, Arrow, Upload, Github, Search } from "@/components/ui/icons";
-import { SITE_URL } from "@/components/inventory/constants";
+import { SITE_URL, SCAN_NPX } from "@/components/inventory/constants";
 import { OsTabs } from "@/components/setup/OsTabs";
 
 export const metadata: Metadata = {
@@ -90,14 +91,35 @@ export default function Setup() {
         {/* Step 2 — paste the command */}
         <Step n={2} title="Paste this one command and press Enter">
           <p className="setup-text">
-            Make sure your computer is selected below, then copy the line, click into the terminal
-            window, paste it, and press <span className="kbd">Enter</span>.
+            Copy the line below, click into the terminal window, paste it, and press{" "}
+            <span className="kbd">Enter</span>. This one command is the same on every computer — Mac,
+            Windows, or Linux:
           </p>
-          <div style={{ marginTop: 16, marginBottom: 18 }}>
-            <ScanCommand />
+          <div style={{ marginTop: 16, marginBottom: 12 }}>
+            <CodeBlock code={SCAN_NPX} />
           </div>
+          <p className="setup-text muted" style={{ marginTop: 0, marginBottom: 18, fontSize: 13.5 }}>
+            It downloads and runs the tool from npm (the standard place Node tools live), with no{" "}
+            <code className="inline">curl</code> and nothing piped. The first run may take a few
+            seconds to fetch it.
+          </p>
 
-          <div className="card card-2" style={{ padding: "16px 18px" }}>
+          {/* curl alternative, per OS */}
+          <details className="setup-details">
+            <summary>Prefer not to use npm? Use the per-OS download command</summary>
+            <div className="setup-details-body">
+              <p className="setup-text">
+                This fetches the same script straight from this site. Make sure your computer is
+                selected, then copy the line, paste it into the terminal, and press{" "}
+                <span className="kbd">Enter</span>.
+              </p>
+              <div style={{ marginTop: 12 }}>
+                <ScanCommand />
+              </div>
+            </div>
+          </details>
+
+          <div className="card card-2" style={{ marginTop: 18, padding: "16px 18px" }}>
             <p className="setup-text" style={{ margin: 0 }}>
               <strong>What it does, plainly:</strong> it looks at your own Claude Code setup and
               writes a small file called <code className="inline">claude-inventory.json</code> right
@@ -267,7 +289,9 @@ export default function Setup() {
             >
               GitHub
             </a>
-            . Clone the repo and run <code className="inline">node public/scan.mjs</code> instead.
+            . Clone the repo and run <code className="inline">node public/scan.mjs</code>, or install
+            it once with <code className="inline">npm i -g claude-inventory-tool</code> and run{" "}
+            <code className="inline">claude-inventory-tool</code>.
           </p>
         </div>
 

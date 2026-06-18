@@ -11,6 +11,12 @@
 // by global (~/.claude) vs. project (each repo's .claude). Drop that file
 // into the web app to see and organize everything.
 //
+// It also scans your local Claude Code transcripts (~/.claude/projects/*.jsonl)
+// to count how often each skill, agent, and MCP server was actually invoked,
+// and when it was last used. ONLY tool/server/agent/skill NAMES, counts, and
+// timestamps are read from transcripts — never your prompts, messages, command
+// text, file paths, or tool arguments. Disable with --no-transcripts.
+//
 // PRIVACY: this runs entirely on your machine. It never sends anything
 // anywhere. Secrets are aggressively redacted before they ever touch the
 // output file: MCP env values, auth headers, tokens, and URL credentials
@@ -26,15 +32,13 @@
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
+import readline from "node:readline";
+import { pathToFileURL } from "node:url";
 
 const SCHEMA_VERSION = 1;
-const GENERATOR = "scan.mjs@1.0.0";
+const GENERATOR = "scan.mjs@1.1.0";
 const HOME = os.homedir();
 const CLAUDE = path.join(HOME, ".claude");
-
-const args = new Set(process.argv.slice(2));
-const TO_STDOUT = args.has("--stdout");
-const OUT_FILE = path.resolve(process.cwd(), "claude-inventory.json");
 
 // ---------- small helpers ----------
 const tilde = (p) => (p && p.startsWith(HOME) ? "~" + p.slice(HOME.length) : p);
@@ -207,14 +211,11 @@ function mcpDescription(summary) {
   return `${summary.transport} MCP server`;
 }
 
-// ---------- usage tables ----------
-const root = readJSON(path.join(HOME, ".claude.json")) || {};
-const skillUsage = root.skillUsage || {};
-const pluginUsage = root.pluginUsage || {};
+// ---------- usage classification ----------
 const DAY = 86_400_000;
-const now = Date.now();
 
 function classifyUsage(usageCount, lastUsedAt, { passive = false } = {}) {
+  const now = Date.now();
   if (usageCount == null && lastUsedAt == null) return passive ? "info" : "unknown";
   const count = usageCount || 0;
   if (count > 0) return "good";
@@ -224,6 +225,7 @@ function classifyUsage(usageCount, lastUsedAt, { passive = false } = {}) {
 }
 
 function usageLabel(usageCount, lastUsedAt, usageClass) {
+  const now = Date.now();
   if (usageClass === "unknown") return "no usage signal";
   if (usageClass === "info") return "passive";
   if (usageCount && usageCount > 0) {
@@ -233,182 +235,437 @@ function usageLabel(usageCount, lastUsedAt, usageClass) {
   return "➖ never";
 }
 
-// ---------- collectors ----------
-const items = [];
-const projectNames = new Set();
+// ---------- transcript usage scanning (PRIVACY-CRITICAL) ----------
+// Streams ~/.claude/projects/*.jsonl (and one level deeper) line-by-line and
+// tallies how often each MCP server / agent / skill was invoked, plus the most
+// recent invocation time. The ONLY data extracted is names + counts + the
+// max timestamp per key — never prompt text, message prose, command text,
+// arguments, cwd, or file paths.
+//
+// Returns { byKey: Map<kind:name, { count, lastUsed }>, totalInvocations, transcriptsScanned }.
+// `kind` is one of "mcp" | "agent" | "skill". Keys are stored normalized.
 
-function addSkill(scope, project, dirName, skillDir) {
-  const fm = parseFrontmatter(readText(path.join(skillDir, "SKILL.md")));
-  const name = fm.name || dirName;
-  // usage tables key skills by their invocation name (bare or plugin:skill).
-  const u = skillUsage[name] || skillUsage[dirName] || null;
-  const usageCount = u ? (u.usageCount ?? null) : null;
-  const lastUsedAt = u ? (u.lastUsedAt ?? null) : null;
-  const usageClass = classifyUsage(usageCount, lastUsedAt);
-  items.push({
-    id: `skill:${scope === "global" ? "global" : "project:" + project}:${dirName}`,
-    type: "skill", scope, project: scope === "global" ? null : project,
-    name, description: scrubSecrets(fm.description || ""),
-    path: tilde(skillDir),
-    usageCount, lastUsedAt, usageClass,
-    usageLabel: usageLabel(usageCount, lastUsedAt, usageClass),
-    removeCmd: scope === "global"
-      ? `rm -rf ${tilde(skillDir)}`
-      : `git rm -r .claude/skills/${dirName}`,
+// Normalize a name for matching: lowercase, drop a leading "plugin_" / "plugin:"
+// namespace, and (for "plugin:skill" / "<plugin>:<id>" shapes) take the
+// meaningful trailing segment. Keeps things like "vercel:deploy" → "deploy".
+function normalizeName(s) {
+  if (!s) return "";
+  let n = String(s).toLowerCase().trim();
+  // Strip a leading plugin_ prefix (e.g. "plugin_vercel_vercel" handled by caller's
+  // server logic; here we just remove a bare "plugin_" / "plugin:" lead-in).
+  n = n.replace(/^plugin[_:]/, "");
+  // If namespaced with a colon, take the trailing segment ("vercel:deploy" → "deploy").
+  if (n.includes(":")) n = n.split(":").pop();
+  return n.trim();
+}
+
+// Derive the MCP server name from a tool name like "mcp__<server>__<tool>".
+// Also collapse the "plugin_<x>_<server>" convention down to "<server>" so it
+// matches a configured MCP item named "<server>".
+function mcpServerFromToolName(toolName) {
+  const m = String(toolName).match(/^mcp__(.+?)__/);
+  if (!m) return null;
+  let server = m[1];
+  // "plugin_vercel_vercel" → "vercel"; "plugin_claude-mem_mcp-search" → "mcp-search".
+  const pm = server.match(/^plugin_[^_]+_(.+)$/);
+  if (pm) server = pm[1];
+  return server;
+}
+
+function transcriptKey(kind, name) {
+  return `${kind}:${normalizeName(name)}`;
+}
+
+// Discover candidate .jsonl transcript files under a projects dir:
+// projectsDir/*.jsonl and projectsDir/<sub>/*.jsonl (one level deeper).
+function findTranscriptFiles(projectsDir) {
+  const files = [];
+  for (const entry of listDir(projectsDir, "dir")) {
+    const sub = path.join(projectsDir, entry);
+    for (const f of listDir(sub, "file")) {
+      if (f.endsWith(".jsonl")) files.push(path.join(sub, f));
+    }
+  }
+  // Also pick up any .jsonl sitting directly in projectsDir.
+  for (const f of listDir(projectsDir, "file")) {
+    if (f.endsWith(".jsonl")) files.push(path.join(projectsDir, f));
+  }
+  return files;
+}
+
+// Tally one decoded transcript line into the byKey map.
+function tallyLine(obj, byKey) {
+  if (!obj || typeof obj !== "object") return 0;
+  const content = obj.message && obj.message.content;
+  if (!Array.isArray(content)) return 0;
+  const ts = obj.timestamp ? Date.parse(obj.timestamp) : NaN;
+  const when = Number.isFinite(ts) ? ts : null;
+  let counted = 0;
+  for (const part of content) {
+    if (!part || part.type !== "tool_use" || typeof part.name !== "string") continue;
+    const toolName = part.name;
+    let key = null;
+    if (/^mcp__(.+?)__/.test(toolName)) {
+      const server = mcpServerFromToolName(toolName);
+      if (server) key = transcriptKey("mcp", server);
+    } else if (toolName === "Agent" || toolName === "Task") {
+      const sub = part.input && part.input.subagent_type;
+      if (typeof sub === "string" && sub) key = transcriptKey("agent", sub);
+    } else if (toolName === "Skill") {
+      const sk = part.input && part.input.skill;
+      if (typeof sk === "string" && sk) key = transcriptKey("skill", sk);
+    }
+    if (!key) continue;
+    const rec = byKey.get(key) || { count: 0, lastUsed: null };
+    rec.count += 1;
+    if (when != null && (rec.lastUsed == null || when > rec.lastUsed)) rec.lastUsed = when;
+    byKey.set(key, rec);
+    counted += 1;
+  }
+  return counted;
+}
+
+async function scanOneTranscript(file, byKey) {
+  let total = 0;
+  await new Promise((resolve) => {
+    let stream;
+    try {
+      stream = fs.createReadStream(file, { encoding: "utf8" });
+    } catch { resolve(); return; }
+    stream.on("error", () => resolve());
+    const rl = readline.createInterface({ input: stream, crlfDelay: Infinity });
+    rl.on("line", (line) => {
+      const s = line.trim();
+      if (!s) return;
+      let obj;
+      try { obj = JSON.parse(s); } catch { return; } // skip unparseable lines
+      total += tallyLine(obj, byKey);
+    });
+    rl.on("error", () => resolve());
+    rl.on("close", () => resolve());
   });
+  return total;
 }
 
-function addAgent(scope, project, fileName, agentFile) {
-  const base = fileName.replace(/\.md$/, "");
-  const fm = parseFrontmatter(readText(agentFile));
-  const name = fm.name || base;
-  const u = skillUsage[name] || skillUsage[base] || null; // agents sometimes appear here too
-  const usageCount = u ? (u.usageCount ?? null) : null;
-  const lastUsedAt = u ? (u.lastUsedAt ?? null) : null;
-  const usageClass = classifyUsage(usageCount, lastUsedAt, { passive: true });
-  items.push({
-    id: `agent:${scope === "global" ? "global" : "project:" + project}:${base}`,
-    type: "agent", scope, project: scope === "global" ? null : project,
-    name, description: scrubSecrets(fm.description || ""),
-    path: tilde(agentFile),
-    usageCount, lastUsedAt, usageClass,
-    usageLabel: usageLabel(usageCount, lastUsedAt, usageClass),
-    removeCmd: scope === "global"
-      ? `rm ${tilde(agentFile)}`
-      : `git rm .claude/agents/${fileName}`,
-  });
+async function scanTranscripts({ transcriptsDir, quiet = false } = {}) {
+  const dir = transcriptsDir || path.join(CLAUDE, "projects");
+  const byKey = new Map();
+  if (!exists(dir)) {
+    return { byKey, totalInvocations: 0, transcriptsScanned: 0 };
+  }
+  const files = findTranscriptFiles(dir);
+  if (!quiet) {
+    process.stderr.write(`  scanning ${files.length} transcript file${files.length === 1 ? "" : "s"}…\n`);
+  }
+  let totalInvocations = 0;
+  let transcriptsScanned = 0;
+  for (const file of files) {
+    totalInvocations += await scanOneTranscript(file, byKey);
+    transcriptsScanned += 1;
+  }
+  return { byKey, totalInvocations, transcriptsScanned };
 }
 
-function addMcp(scope, project, name, cfg) {
-  const summary = summarizeMcp(name, cfg);
-  items.push({
-    id: `mcp:${scope === "global" ? "global" : "project:" + project}:${name}`,
-    type: "mcp", scope, project: scope === "global" ? null : project,
-    name, description: mcpDescription(summary),
-    source: mcpSourceLabel(summary),
-    usageCount: null, lastUsedAt: null, usageClass: "info",
-    usageLabel: "passive (surfaced on demand)",
-    removeCmd: scope === "global"
-      ? `claude mcp remove ${name} -s user`
-      : `claude mcp remove ${name}`,
-  });
-}
+// ---------- inventory build ----------
+// Collects every skill / agent / plugin / MCP item from the local install,
+// optionally overlays transcript usage, and returns the inventory OBJECT.
+// Does NOT write or print anything.
+export async function buildInventory(opts = {}) {
+  const { transcripts = true, transcriptsDir, quiet = false } = opts;
 
-// ---- global skills ----
-const globalSkillsDir = path.join(CLAUDE, "skills");
-for (const d of listDir(globalSkillsDir, "dir")) {
-  const dir = path.join(globalSkillsDir, d);
-  if (exists(path.join(dir, "SKILL.md"))) addSkill("global", null, d, dir);
-}
+  const root = readJSON(path.join(HOME, ".claude.json")) || {};
+  const skillUsage = root.skillUsage || {};
+  const pluginUsage = root.pluginUsage || {};
 
-// ---- global agents ----
-const globalAgentsDir = path.join(CLAUDE, "agents");
-for (const f of listDir(globalAgentsDir, "file")) {
-  if (f.endsWith(".md")) addAgent("global", null, f, path.join(globalAgentsDir, f));
-}
+  const items = [];
+  const projectNames = new Set();
 
-// ---- plugins (global; installed_plugins.json) ----
-const installed = readJSON(path.join(CLAUDE, "plugins", "installed_plugins.json"));
-if (installed && installed.plugins) {
-  for (const [key, entries] of Object.entries(installed.plugins)) {
-    const entry = Array.isArray(entries) ? entries[0] : entries;
-    const [pluginName, marketplace] = key.split("@");
-    const u = pluginUsage[key] || null;
+  function addSkill(scope, project, dirName, skillDir) {
+    const fm = parseFrontmatter(readText(path.join(skillDir, "SKILL.md")));
+    const name = fm.name || dirName;
+    // usage tables key skills by their invocation name (bare or plugin:skill).
+    const u = skillUsage[name] || skillUsage[dirName] || null;
     const usageCount = u ? (u.usageCount ?? null) : null;
     const lastUsedAt = u ? (u.lastUsedAt ?? null) : null;
     const usageClass = classifyUsage(usageCount, lastUsedAt);
-    const installPath = entry && entry.installPath
-      ? (entry.installPath.startsWith(HOME) ? tilde(entry.installPath) : "<external>")
-      : undefined;
     items.push({
-      // Bare name; the marketplace lives in `source` (matches the demo shape).
-      id: `plugin:global:${pluginName}`,
-      type: "plugin", scope: "global", project: null,
-      name: pluginName,
-      description: "", // not stored locally; the demo/curation can add it
-      source: marketplace || "",
-      version: entry ? entry.version : undefined,
-      path: installPath,
+      id: `skill:${scope === "global" ? "global" : "project:" + project}:${dirName}`,
+      type: "skill", scope, project: scope === "global" ? null : project,
+      name, description: scrubSecrets(fm.description || ""),
+      path: tilde(skillDir),
       usageCount, lastUsedAt, usageClass,
       usageLabel: usageLabel(usageCount, lastUsedAt, usageClass),
-      // The CLI wants the full name@marketplace form to uninstall.
-      removeCmd: `claude plugins uninstall ${key} -y`,
+      // dir name is used to match transcript Skill invocations (input.skill).
+      _matchKind: "skill", _matchName: dirName,
+      removeCmd: scope === "global"
+        ? `rm -rf ${tilde(skillDir)}`
+        : `git rm -r .claude/skills/${dirName}`,
     });
   }
-}
 
-// ---- global MCP servers ----
-for (const [name, cfg] of Object.entries(root.mcpServers || {})) {
-  addMcp("global", null, name, cfg);
-}
-
-// ---- per-project (from every known project path in ~/.claude.json) ----
-const projectPaths = new Set();
-if (exists(path.join(process.cwd(), ".claude")) || exists(path.join(process.cwd(), ".mcp.json"))) {
-  projectPaths.add(process.cwd());
-}
-for (const p of Object.keys(root.projects || {})) projectPaths.add(p);
-
-for (const projPath of projectPaths) {
-  if (!exists(projPath)) continue; // path may be stale
-  const project = path.basename(projPath);
-  const projConf = (root.projects && root.projects[projPath]) || {};
-
-  let touched = false;
-
-  // project skills
-  const pSkills = path.join(projPath, ".claude", "skills");
-  for (const d of listDir(pSkills, "dir")) {
-    const dir = path.join(pSkills, d);
-    if (exists(path.join(dir, "SKILL.md"))) { addSkill("project", project, d, dir); touched = true; }
-  }
-  // project agents
-  const pAgents = path.join(projPath, ".claude", "agents");
-  for (const f of listDir(pAgents, "file")) {
-    if (f.endsWith(".md")) { addAgent("project", project, f, path.join(pAgents, f)); touched = true; }
-  }
-  // project MCP servers — from ~/.claude.json projects[path].mcpServers and/or .mcp.json
-  const fromConf = projConf.mcpServers || {};
-  const fromFile = (readJSON(path.join(projPath, ".mcp.json")) || {}).mcpServers || {};
-  for (const [name, cfg] of Object.entries({ ...fromFile, ...fromConf })) {
-    addMcp("project", project, name, cfg); touched = true;
+  function addAgent(scope, project, fileName, agentFile) {
+    const base = fileName.replace(/\.md$/, "");
+    const fm = parseFrontmatter(readText(agentFile));
+    const name = fm.name || base;
+    const u = skillUsage[name] || skillUsage[base] || null; // agents sometimes appear here too
+    const usageCount = u ? (u.usageCount ?? null) : null;
+    const lastUsedAt = u ? (u.lastUsedAt ?? null) : null;
+    const usageClass = classifyUsage(usageCount, lastUsedAt, { passive: true });
+    items.push({
+      id: `agent:${scope === "global" ? "global" : "project:" + project}:${base}`,
+      type: "agent", scope, project: scope === "global" ? null : project,
+      name, description: scrubSecrets(fm.description || ""),
+      path: tilde(agentFile),
+      usageCount, lastUsedAt, usageClass,
+      usageLabel: usageLabel(usageCount, lastUsedAt, usageClass),
+      // filename stem is used to match transcript Agent invocations (subagent_type).
+      _matchKind: "agent", _matchName: base,
+      removeCmd: scope === "global"
+        ? `rm ${tilde(agentFile)}`
+        : `git rm .claude/agents/${fileName}`,
+    });
   }
 
-  if (touched) projectNames.add(project);
+  function addMcp(scope, project, name, cfg) {
+    const summary = summarizeMcp(name, cfg);
+    items.push({
+      id: `mcp:${scope === "global" ? "global" : "project:" + project}:${name}`,
+      type: "mcp", scope, project: scope === "global" ? null : project,
+      name, description: mcpDescription(summary),
+      source: mcpSourceLabel(summary),
+      usageCount: null, lastUsedAt: null, usageClass: "info",
+      usageLabel: "passive (surfaced on demand)",
+      // server name is used to match transcript mcp__<server>__ invocations.
+      _matchKind: "mcp", _matchName: name,
+      removeCmd: scope === "global"
+        ? `claude mcp remove ${name} -s user`
+        : `claude mcp remove ${name}`,
+    });
+  }
+
+  // ---- global skills ----
+  const globalSkillsDir = path.join(CLAUDE, "skills");
+  for (const d of listDir(globalSkillsDir, "dir")) {
+    const dir = path.join(globalSkillsDir, d);
+    if (exists(path.join(dir, "SKILL.md"))) addSkill("global", null, d, dir);
+  }
+
+  // ---- global agents ----
+  const globalAgentsDir = path.join(CLAUDE, "agents");
+  for (const f of listDir(globalAgentsDir, "file")) {
+    if (f.endsWith(".md")) addAgent("global", null, f, path.join(globalAgentsDir, f));
+  }
+
+  // ---- plugins (global; installed_plugins.json) ----
+  const installed = readJSON(path.join(CLAUDE, "plugins", "installed_plugins.json"));
+  if (installed && installed.plugins) {
+    for (const [key, entries] of Object.entries(installed.plugins)) {
+      const entry = Array.isArray(entries) ? entries[0] : entries;
+      const [pluginName, marketplace] = key.split("@");
+      const u = pluginUsage[key] || null;
+      const usageCount = u ? (u.usageCount ?? null) : null;
+      const lastUsedAt = u ? (u.lastUsedAt ?? null) : null;
+      const usageClass = classifyUsage(usageCount, lastUsedAt);
+      const installPath = entry && entry.installPath
+        ? (entry.installPath.startsWith(HOME) ? tilde(entry.installPath) : "<external>")
+        : undefined;
+      items.push({
+        // Bare name; the marketplace lives in `source` (matches the demo shape).
+        id: `plugin:global:${pluginName}`,
+        type: "plugin", scope: "global", project: null,
+        name: pluginName,
+        description: "", // not stored locally; the demo/curation can add it
+        source: marketplace || "",
+        version: entry ? entry.version : undefined,
+        path: installPath,
+        usageCount, lastUsedAt, usageClass,
+        usageLabel: usageLabel(usageCount, lastUsedAt, usageClass),
+        // The CLI wants the full name@marketplace form to uninstall.
+        removeCmd: `claude plugins uninstall ${key} -y`,
+      });
+    }
+  }
+
+  // ---- global MCP servers ----
+  for (const [name, cfg] of Object.entries(root.mcpServers || {})) {
+    addMcp("global", null, name, cfg);
+  }
+
+  // ---- per-project (from every known project path in ~/.claude.json) ----
+  const projectPaths = new Set();
+  if (exists(path.join(process.cwd(), ".claude")) || exists(path.join(process.cwd(), ".mcp.json"))) {
+    projectPaths.add(process.cwd());
+  }
+  for (const p of Object.keys(root.projects || {})) projectPaths.add(p);
+
+  for (const projPath of projectPaths) {
+    if (!exists(projPath)) continue; // path may be stale
+    const project = path.basename(projPath);
+    const projConf = (root.projects && root.projects[projPath]) || {};
+
+    let touched = false;
+
+    // project skills
+    const pSkills = path.join(projPath, ".claude", "skills");
+    for (const d of listDir(pSkills, "dir")) {
+      const dir = path.join(pSkills, d);
+      if (exists(path.join(dir, "SKILL.md"))) { addSkill("project", project, d, dir); touched = true; }
+    }
+    // project agents
+    const pAgents = path.join(projPath, ".claude", "agents");
+    for (const f of listDir(pAgents, "file")) {
+      if (f.endsWith(".md")) { addAgent("project", project, f, path.join(pAgents, f)); touched = true; }
+    }
+    // project MCP servers — from ~/.claude.json projects[path].mcpServers and/or .mcp.json
+    const fromConf = projConf.mcpServers || {};
+    const fromFile = (readJSON(path.join(projPath, ".mcp.json")) || {}).mcpServers || {};
+    for (const [name, cfg] of Object.entries({ ...fromFile, ...fromConf })) {
+      addMcp("project", project, name, cfg); touched = true;
+    }
+
+    if (touched) projectNames.add(project);
+  }
+
+  // ---- transcript usage overlay ----
+  let usageSummary;
+  if (transcripts) {
+    const { byKey, totalInvocations, transcriptsScanned } = await scanTranscripts({ transcriptsDir, quiet });
+
+    // Match each tracked item (skill / agent / mcp) to its transcript tally.
+    let itemsWithUsage = 0;
+    let itemsUnused = 0;
+    for (const item of items) {
+      if (!item._matchKind) continue; // plugins are not transcript-tracked
+      const key = transcriptKey(item._matchKind, item._matchName);
+      const rec = byKey.get(key);
+      const count = rec ? rec.count : 0;
+      const last = rec ? rec.lastUsed : null;
+      item.invocationCount = count;
+      item.lastUsed = last;
+      item.usageSource = "transcripts";
+      if (count > 0) {
+        itemsWithUsage += 1;
+        // Light up the existing UI fields from the transcript signal.
+        item.usageCount = count;
+        item.lastUsedAt = last;
+        item.usageClass = classifyUsage(count, last);
+        item.usageLabel = usageLabel(count, last, item.usageClass);
+      } else {
+        // No transcript invocations → genuinely never used. Reflect that in the
+        // existing UI fields so the per-item badge, the "unused" filter, the
+        // stat cell, and usageSummary.itemsUnused all describe the same set.
+        // (The transcript corpus is the authoritative usage record; a tracked
+        // item absent from it has not been used.)
+        item.usageCount = 0;
+        item.lastUsedAt = last;
+        item.usageClass = classifyUsage(0, last);
+        item.usageLabel = usageLabel(0, last, item.usageClass);
+        itemsUnused += 1;
+      }
+    }
+
+    usageSummary = {
+      totalInvocations,
+      itemsWithUsage,
+      itemsUnused,
+      transcriptsScanned,
+      generatedFrom: "transcripts",
+    };
+  } else {
+    // Transcripts disabled — preserve today's ~/.claude.json behavior and just
+    // annotate the usageSource per item so consumers know where the signal came from.
+    for (const item of items) {
+      if (item.type === "skill") {
+        item.usageSource = (item.usageCount != null || item.lastUsedAt != null) ? "claude-json" : "none";
+      } else if (item.type === "agent" || item.type === "mcp") {
+        item.usageSource = "none";
+      }
+    }
+  }
+
+  // Drop internal matching helpers before emitting.
+  for (const item of items) { delete item._matchKind; delete item._matchName; }
+
+  const inventory = {
+    schemaVersion: SCHEMA_VERSION,
+    generatedAt: new Date().toISOString(),
+    generator: GENERATOR,
+    machine: { platform: process.platform, node: process.version },
+    projects: [...projectNames].sort((a, b) => a.localeCompare(b)),
+    items,
+  };
+  if (usageSummary) inventory.usageSummary = usageSummary;
+  return inventory;
 }
 
-// ---------- emit ----------
-const inventory = {
-  schemaVersion: SCHEMA_VERSION,
-  generatedAt: new Date().toISOString(),
-  generator: GENERATOR,
-  machine: { platform: process.platform, node: process.version },
-  projects: [...projectNames].sort((a, b) => a.localeCompare(b)),
-  items,
-};
+// ---------- scan: build + write/print + log summary ----------
+export async function runScan(opts = {}) {
+  const {
+    stdout = false,
+    outFile = "claude-inventory.json",
+    transcripts = true,
+    transcriptsDir,
+    quiet = false,
+  } = opts;
 
-const json = JSON.stringify(inventory, null, 2);
+  const inventory = await buildInventory({ transcripts, transcriptsDir, quiet });
+  const json = JSON.stringify(inventory, null, 2);
 
-// summary counts for the console
-const by = (t) => items.filter((i) => i.type === t).length;
-const g = items.filter((i) => i.scope === "global").length;
-const p = items.length - g;
+  const outPath = path.resolve(process.cwd(), outFile);
+  if (stdout) {
+    process.stdout.write(json + "\n");
+  } else {
+    fs.writeFileSync(outPath, json);
+  }
 
-if (TO_STDOUT) {
-  process.stdout.write(json + "\n");
-} else {
-  fs.writeFileSync(OUT_FILE, json);
-}
+  // summary counts for the console
+  const items = inventory.items;
+  const by = (t) => items.filter((i) => i.type === t).length;
+  const g = items.filter((i) => i.scope === "global").length;
+  const p = items.length - g;
 
-const log = (s) => process.stderr.write(s + "\n");
-log("");
-log("  Claude Inventory Tool — scan complete");
-log("  ─────────────────────────────────────");
-log(`  skills ${by("skill")}   plugins ${by("plugin")}   mcp ${by("mcp")}   agents ${by("agent")}`);
-log(`  ${g} global · ${p} project   across ${inventory.projects.length} project${inventory.projects.length === 1 ? "" : "s"}`);
-log("");
-if (!TO_STDOUT) {
-  log(`  ✓ wrote ${OUT_FILE}`);
-  log("  → open the web app and drop this file in.");
+  const log = (s) => process.stderr.write(s + "\n");
   log("");
+  log("  Claude Inventory Tool — scan complete");
+  log("  ─────────────────────────────────────");
+  log(`  skills ${by("skill")}   plugins ${by("plugin")}   mcp ${by("mcp")}   agents ${by("agent")}`);
+  log(`  ${g} global · ${p} project   across ${inventory.projects.length} project${inventory.projects.length === 1 ? "" : "s"}`);
+  if (inventory.usageSummary) {
+    const us = inventory.usageSummary;
+    log(`  usage: ${us.totalInvocations.toLocaleString()} invocations · ${us.itemsWithUsage} used · ${us.itemsUnused} unused   (${us.transcriptsScanned} transcript${us.transcriptsScanned === 1 ? "" : "s"})`);
+  }
+  log("");
+  if (!stdout) {
+    log(`  ✓ wrote ${outPath}`);
+    log("  → open the web app and drop this file in.");
+    log("");
+  }
+  return inventory;
+}
+
+export { scrubSecrets, redactArgs, redactUrl, looksLikeToken };
+
+// ---------- CLI arg parsing + auto-run guard ----------
+function parseArgs(argv) {
+  const opts = {};
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === "--stdout" || a === "--print") opts.stdout = true;
+    else if (a === "--no-transcripts") opts.transcripts = false;
+    else if (a === "--transcripts-dir") opts.transcriptsDir = argv[++i];
+    else if (a.startsWith("--transcripts-dir=")) opts.transcriptsDir = a.slice("--transcripts-dir=".length);
+    else if (a === "--out") opts.outFile = argv[++i];
+    else if (a.startsWith("--out=")) opts.outFile = a.slice("--out=".length);
+  }
+  return opts;
+}
+
+// Run when invoked directly (`node scan.mjs`) or piped (`curl … | node`),
+// but NOT when imported (e.g. by bin/cli.mjs).
+const invokedDirectly = !process.argv[1] || import.meta.url === pathToFileURL(process.argv[1]).href;
+if (invokedDirectly) {
+  runScan(parseArgs(process.argv.slice(2))).catch((err) => {
+    process.stderr.write(`\n  ✗ scan failed: ${err && err.message ? err.message : err}\n`);
+    process.exit(1);
+  });
 }

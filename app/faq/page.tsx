@@ -87,11 +87,19 @@ export default function Faq() {
           </p>
         </Item>
 
-        <Item q="Why are MCP servers and agents shown as “passive”?">
+        <Item q="How does it know what I actually use?">
           <p>
-            Because there&apos;s no usage signal for them in local config. Claude Code records usage
-            counts for skills and plugins, so those show real numbers. MCP servers and agents have
-            nothing equivalent, so the tool marks them <em>passive</em> rather than guess.
+            The scan reads your local Claude Code transcripts (the session logs in{" "}
+            <code className="inline">~/.claude/projects</code>) and counts how many times each skill,
+            agent, and MCP server was actually invoked — plus when it was last used. That&apos;s how
+            the tool can show &ldquo;installed but never used,&rdquo; even for MCP servers and agents,
+            which carry no usage count in plain config.
+          </p>
+          <p style={{ marginTop: 10 }}>
+            It reads <strong>only the tool, skill, agent, and MCP-server names, the counts, and the
+            timestamps</strong> — never your prompts, message text, arguments, file paths, or command
+            contents. It all stays on your machine until you choose to upload the file. To skip the
+            transcript read entirely, run the scan with <code className="inline">--no-transcripts</code>.
           </p>
         </Item>
 
@@ -104,8 +112,14 @@ export default function Faq() {
         </Item>
 
         <Item q="I don't trust “curl | node” — what else can I do?">
-          <p>That&apos;s a healthy instinct. You have options:</p>
+          <p>That&apos;s a healthy instinct. You have options, lightest-touch first:</p>
           <ul style={{ margin: "8px 0 0", paddingLeft: 20 }}>
+            <li>
+              Run <code className="inline">npx claude-inventory-tool</code> instead. No pipe, no{" "}
+              <code className="inline">curl</code> — npm fetches the published, versioned package and
+              runs it. It&apos;s the same code as <code className="inline">/scan.mjs</code>, just
+              delivered through npm.
+            </li>
             <li>
               Open <a href="/scan.mjs" target="_blank" rel="noopener noreferrer" style={docLink}>/scan.mjs</a>,
               read it (one short, dependency-free file), save it, then run <code className="inline">node</code> on the saved file.

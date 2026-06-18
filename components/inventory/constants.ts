@@ -29,3 +29,12 @@ export const SCAN_COMMANDS: Record<Os, { label: string; oneLiner: string; twoSte
 // without an OS toggle, e.g. the README mirror. Prefer <ScanCommand /> in the UI.
 export const SCAN_ONELINER = SCAN_COMMANDS.mac.oneLiner;
 export const SCAN_TWO_STEP = SCAN_COMMANDS.mac.twoStep;
+
+/**
+ * The primary, no-copy-paste-gymnastics way to scan: one command, identical on
+ * every OS, no `curl … | node` pipe to worry about. Runs the published npm
+ * package (which bundles the same `scan.mjs`). Requires Node, which Claude Code
+ * already installs. This is the recommended path; the curl one-liners above stay
+ * as the read-it-first / no-npm alternatives.
+ */
+export const SCAN_NPX = "npx claude-inventory-tool";

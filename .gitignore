@@ -36,3 +36,6 @@ claude-inventory.json
 
 # original private source moved out of my-app — preserved, never published
 /.archive/
+
+# graphify knowledge-graph output (local build artifact, not source)
+/graphify-out/

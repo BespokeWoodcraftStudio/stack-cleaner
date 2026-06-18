@@ -4,7 +4,7 @@
 // =============================================================
 
 import type {
-  Inventory, InventoryItem, ItemType, Scope, UsageClass,
+  Inventory, InventoryItem, ItemType, Scope, UsageClass, UsageSource, UsageSummary,
 } from "./types";
 import { SCHEMA_VERSION } from "./types";
 
@@ -58,6 +58,9 @@ export function parseInventory(raw: unknown): Inventory {
     const usageClass = (["good", "warn", "bad", "info", "unknown"] as UsageClass[]).includes(
       r.usageClass as UsageClass,
     ) ? (r.usageClass as UsageClass) : "unknown";
+    const usageSource = (["transcripts", "claude-json", "none"] as UsageSource[]).includes(
+      r.usageSource as UsageSource,
+    ) ? (r.usageSource as UsageSource) : undefined;
 
     const source = asString(r.source);
     items.push({
@@ -71,6 +74,10 @@ export function parseInventory(raw: unknown): Inventory {
       lastUsedAt: typeof r.lastUsedAt === "number" ? r.lastUsedAt : null,
       usageClass,
       usageLabel: asString(r.usageLabel),
+      // Transcript usage signal (all optional / backward compatible).
+      invocationCount: typeof r.invocationCount === "number" ? r.invocationCount : undefined,
+      lastUsed: typeof r.lastUsed === "number" ? r.lastUsed : null,
+      usageSource,
       overlap: asString(r.overlap),
       removeCmd: asString(r.removeCmd) || deriveRemoveCmd({ type, scope, project, name, source } as InventoryItem),
     });
@@ -83,6 +90,10 @@ export function parseInventory(raw: unknown): Inventory {
   const projects = [...new Set(items.filter((i) => i.scope === "project" && i.project).map((i) => i.project as string))]
     .sort((a, b) => a.localeCompare(b));
 
+  // The authoritative summary comes from the scan JSON; only compute a fallback
+  // when it's absent. Old JSON without a usageSummary still parses cleanly.
+  const usageSummary = parseUsageSummary(obj.usageSummary) ?? computeUsageSummary(items);
+
   return {
     schemaVersion: typeof obj.schemaVersion === "number" ? obj.schemaVersion : SCHEMA_VERSION,
     generatedAt: asString(obj.generatedAt) || new Date(0).toISOString(),
@@ -90,7 +101,46 @@ export function parseInventory(raw: unknown): Inventory {
     machine: (obj.machine as Inventory["machine"]) || undefined,
     projects,
     items,
+    usageSummary,
   };
+}
+
+/** A number from an unknown blob, clamped to a non-negative integer; `fallback` otherwise. */
+function asCount(v: unknown, fallback = 0): number {
+  return typeof v === "number" && Number.isFinite(v) ? Math.max(0, Math.trunc(v)) : fallback;
+}
+
+/** Coerce an unknown blob into a UsageSummary, or undefined when it isn't an object. */
+function parseUsageSummary(raw: unknown): UsageSummary | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const s = raw as Record<string, unknown>;
+  return {
+    totalInvocations: asCount(s.totalInvocations),
+    itemsWithUsage: asCount(s.itemsWithUsage),
+    itemsUnused: asCount(s.itemsUnused),
+    transcriptsScanned: asCount(s.transcriptsScanned),
+    generatedFrom: asString(s.generatedFrom),
+  };
+}
+
+/**
+ * Fallback usage summary computed from parsed items. The authoritative summary
+ * is the one in the scan JSON (which also counts unmatched transcript keys);
+ * this is only used when the JSON omits it.
+ */
+export function computeUsageSummary(items: InventoryItem[]): UsageSummary {
+  let totalInvocations = 0, itemsWithUsage = 0, itemsUnused = 0;
+  for (const it of items) {
+    const n = typeof it.invocationCount === "number" ? it.invocationCount : 0;
+    totalInvocations += n;
+    if (n > 0) {
+      itemsWithUsage++;
+    } else if (typeof it.invocationCount === "number" && it.type !== "plugin") {
+      // Tracked (skill/agent/mcp) but never invoked.
+      itemsUnused++;
+    }
+  }
+  return { totalInvocations, itemsWithUsage, itemsUnused, transcriptsScanned: 0 };
 }
 
 /** Fallback remove command when a scan didn't include one. */
