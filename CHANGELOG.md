@@ -18,6 +18,13 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Added
+
+- Each scope group in the inventory now shows its on-disk location next to the
+  name (e.g. `~/.claude` for Global, `~/Documents/GitHub/.claude` for a project),
+  derived from the items' paths. Makes it obvious where a skill or agent actually
+  lives, and which folder a project group maps to.
+
 ## [1.1.2] - 2026-06-17
 
 ### Fixed

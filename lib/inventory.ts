@@ -282,17 +282,38 @@ export function filterItems(items: InventoryItem[], f: Filters): InventoryItem[]
   });
 }
 
-/** Group items first by scope (global/project), then projects split out by name. */
-export function groupByScope(items: InventoryItem[]): { key: string; label: string; scope: Scope; project: string | null; items: InventoryItem[] }[] {
+/**
+ * Derive the on-disk `.claude` directory a group's items live in, from their
+ * paths (the part up to and including `/.claude`, e.g.
+ * `~/Documents/GitHub/.claude/skills/x` → `~/Documents/GitHub/.claude`). Returns
+ * undefined when no item carries a path (e.g. an MCP-only project).
+ */
+function deriveLocation(items: InventoryItem[]): string | undefined {
+  for (const it of items) {
+    if (!it.path) continue;
+    const i = it.path.indexOf("/.claude/");
+    if (i > 0) return it.path.slice(0, i) + "/.claude";
+  }
+  return undefined;
+}
+
+/**
+ * Group items first by scope (global/project), then projects split out by name.
+ * Each group carries its on-disk `path` so the UI can show people exactly where
+ * those skills/agents live on their computer.
+ */
+export function groupByScope(items: InventoryItem[]): { key: string; label: string; scope: Scope; project: string | null; path?: string; items: InventoryItem[] }[] {
   const globals = items.filter((i) => i.scope === "global");
   const groups: ReturnType<typeof groupByScope> = [];
-  if (globals.length) groups.push({ key: "global", label: "Global", scope: "global", project: null, items: globals });
+  if (globals.length) groups.push({ key: "global", label: "Global", scope: "global", project: null, path: "~/.claude", items: globals });
   const projects = [...new Set(items.filter((i) => i.scope === "project").map((i) => i.project || "unknown"))]
     .sort((a, b) => a.localeCompare(b));
   for (const p of projects) {
+    const projItems = items.filter((i) => i.scope === "project" && (i.project || "unknown") === p);
     groups.push({
       key: `project:${p}`, label: p, scope: "project", project: p,
-      items: items.filter((i) => i.scope === "project" && (i.project || "unknown") === p),
+      path: deriveLocation(projItems),
+      items: projItems,
     });
   }
   return groups;

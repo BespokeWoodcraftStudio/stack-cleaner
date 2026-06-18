@@ -158,7 +158,7 @@ export function InventoryClient() {
         <div className="stack gap-4">
           {groups.map((g) => (
             <GroupSection
-              key={g.key} label={g.label} scope={g.scope} items={g.items}
+              key={g.key} label={g.label} scope={g.scope} path={g.path} items={g.items}
               selected={selected} onToggle={toggle} onSelectMany={selectMany}
             />
           ))}
@@ -296,8 +296,8 @@ function FilterBar({ inventory, stats, filters, setFilters }: {
 }
 
 // ---------------- group section ----------------
-function GroupSection({ label, scope, items, selected, onToggle, onSelectMany }: {
-  label: string; scope: "global" | "project"; items: InventoryItem[];
+function GroupSection({ label, scope, path, items, selected, onToggle, onSelectMany }: {
+  label: string; scope: "global" | "project"; path?: string; items: InventoryItem[];
   selected: Set<string>; onToggle: (id: string) => void; onSelectMany: (ids: string[], on: boolean) => void;
 }) {
   const unusedIds = items.filter((i) => i.usageClass === "bad" || i.usageClass === "warn").map((i) => i.id);
@@ -305,10 +305,15 @@ function GroupSection({ label, scope, items, selected, onToggle, onSelectMany }:
   return (
     <section>
       <div className="row between wrap gap-2" style={{ marginBottom: 10, paddingBottom: 8, borderBottom: "1px solid var(--line)" }}>
-        <div className="row gap-2">
+        <div className="row gap-2 wrap">
           <span className={`badge ${scope}`}><span className="dot" />{scope === "global" ? "Global" : "Project"}</span>
           <h2 style={{ fontSize: 15, fontWeight: 650, margin: 0 }}>{label}</h2>
           <span className="muted tnum" style={{ fontSize: 13 }}>{items.length} item{items.length === 1 ? "" : "s"}</span>
+          {path && (
+            <span className="mono faint" style={{ fontSize: 12 }} title={`These ${scope === "global" ? "global" : label} items live in ${path}`}>
+              {path}
+            </span>
+          )}
           {selectedHere > 0 && <span className="badge accent">{selectedHere} selected</span>}
         </div>
         {unusedIds.length > 0 && (

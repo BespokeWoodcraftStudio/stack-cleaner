@@ -10,6 +10,7 @@
 import type { Inventory, InventoryItem, UsageClass } from "./types";
 
 const PROJECT = "demo-studio"; // stand-in project name for the demo's project-scoped items
+const PROJECT_DIR = "~/code/demo-studio"; // realistic on-disk location for the demo project
 
 // Anchor transcript timestamps to the demo's generation time so "last used
 // Nd ago" reads sensibly. Each usage tuple is [invocationCount, daysAgo];
@@ -56,7 +57,7 @@ function skill(
     type: "skill", scope, project,
     name, description, overlap: overlap || undefined,
     usageClass, usageLabel,
-    path: scope === "global" ? `~/.claude/skills/${name}` : `${PROJECT}/.claude/skills/${name}`,
+    path: scope === "global" ? `~/.claude/skills/${name}` : `${PROJECT_DIR}/.claude/skills/${name}`,
     removeCmd: scope === "global"
       ? `rm -rf ~/.claude/skills/${name}`
       : `git rm -r .claude/skills/${name}`,
@@ -87,7 +88,7 @@ function agent(
     id: `agent:${scope === "global" ? "global" : "project:" + project}:${name}`,
     type: "agent", scope, project, name, description,
     usageClass, usageLabel,
-    path: scope === "global" ? `~/.claude/agents/${name}.md` : `${PROJECT}/.claude/agents/${name}.md`,
+    path: scope === "global" ? `~/.claude/agents/${name}.md` : `${PROJECT_DIR}/.claude/agents/${name}.md`,
     removeCmd: scope === "global" ? `rm ~/.claude/agents/${name}.md` : `git rm .claude/agents/${name}.md`,
     ...usageFields(usage),
   };
