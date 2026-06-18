@@ -168,9 +168,24 @@ export function parseInventory(raw: unknown): Inventory {
     generator: asString(obj.generator) || "unknown",
     machine: (obj.machine as Inventory["machine"]) || undefined,
     projects,
+    projectLocations: parseProjectLocations(obj.projectLocations),
     items,
     usageSummary,
   };
+}
+
+/**
+ * Coerce an unknown blob into a project-basename → on-disk-`.claude`-path map,
+ * keeping only string→string entries. Returns undefined when absent or empty so
+ * the UI cleanly falls back to deriving locations from item paths (older scans).
+ */
+function parseProjectLocations(raw: unknown): Record<string, string> | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+    if (typeof v === "string" && v) out[k] = v;
+  }
+  return Object.keys(out).length ? out : undefined;
 }
 
 /** A number from an unknown blob, clamped to a non-negative integer; `fallback` otherwise. */
@@ -300,9 +315,11 @@ function deriveLocation(items: InventoryItem[]): string | undefined {
 /**
  * Group items first by scope (global/project), then projects split out by name.
  * Each group carries its on-disk `path` so the UI can show people exactly where
- * those skills/agents live on their computer.
+ * those skills/agents live on their computer. The explicit `projectLocations` map
+ * (emitted by scan.mjs@1.1.3+) is preferred — it covers MCP-only projects that
+ * have no path-bearing item — with `deriveLocation` as the fallback for older scans.
  */
-export function groupByScope(items: InventoryItem[]): { key: string; label: string; scope: Scope; project: string | null; path?: string; items: InventoryItem[] }[] {
+export function groupByScope(items: InventoryItem[], projectLocations?: Record<string, string>): { key: string; label: string; scope: Scope; project: string | null; path?: string; items: InventoryItem[] }[] {
   const globals = items.filter((i) => i.scope === "global");
   const groups: ReturnType<typeof groupByScope> = [];
   if (globals.length) groups.push({ key: "global", label: "Global", scope: "global", project: null, path: "~/.claude", items: globals });
@@ -312,7 +329,7 @@ export function groupByScope(items: InventoryItem[]): { key: string; label: stri
     const projItems = items.filter((i) => i.scope === "project" && (i.project || "unknown") === p);
     groups.push({
       key: `project:${p}`, label: p, scope: "project", project: p,
-      path: deriveLocation(projItems),
+      path: projectLocations?.[p] ?? deriveLocation(projItems),
       items: projItems,
     });
   }

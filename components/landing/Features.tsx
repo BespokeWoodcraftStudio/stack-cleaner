@@ -7,7 +7,7 @@ const FEATURES = [
     tone: "var(--global)",
     title: "Global vs. project, side by side",
     body:
-      "Everything is split by where it lives — your global ~/.claude setup and each repo's own .claude — so you always know what's yours everywhere vs. scoped to one project.",
+      "Everything is split by where it lives: your global ~/.claude setup and each repo's own .claude, so you always know what's yours everywhere vs. scoped to one project.",
   },
   {
     icon: Search,
@@ -21,7 +21,7 @@ const FEATURES = [
     tone: "var(--good)",
     title: "Secrets stripped at the source",
     body:
-      "Known secret fields — API keys, tokens, MCP env values, and URL credentials — are redacted before the file is written, and your home path becomes ~. The scan never sends anything anywhere.",
+      "Known secret fields (API keys, tokens, MCP env values, and URL credentials) are redacted before the file is written, and your home path becomes ~. The scan never sends anything anywhere.",
   },
   {
     icon: Terminal,
@@ -35,14 +35,14 @@ const FEATURES = [
     tone: "var(--fg-soft)",
     title: "Free & MIT open source",
     body:
-      "No paywall, no trial, no catch. The whole thing is open source under MIT — read the code, fork it, or run it yourself.",
+      "No paywall, no trial, no catch. The whole thing is open source under MIT. Read the code, fork it, or run it yourself.",
   },
   {
     icon: Check,
     tone: "var(--project)",
     title: "Hand the cleanup to Claude",
     body:
-      "Prefer to delegate? Export a paste-to-Claude prompt and let Claude do the removal for you, step by step. The tool only generates commands — it never deletes anything itself.",
+      "Prefer to delegate? Export a paste-to-Claude prompt and let Claude do the removal for you, step by step. The tool only generates commands. It never deletes anything itself.",
   },
 ];
 

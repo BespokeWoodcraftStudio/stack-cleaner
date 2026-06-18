@@ -80,6 +80,14 @@ export interface Inventory {
   machine?: { platform?: string; node?: string };
   /** Project basenames discovered, for the project filter. */
   projects: string[];
+  /**
+   * On-disk `.claude` directory per project basename, home-relative
+   * (e.g. {"my-app": "~/Documents/GitHub/my-app/.claude"}). Lets the UI label
+   * a project's location even when it has only MCP servers (which carry no
+   * path-bearing item for the location to be derived from). Optional/back-compat:
+   * older scans omit it and the UI falls back to deriving the path from items.
+   */
+  projectLocations?: Record<string, string>;
   items: InventoryItem[];
   /** Aggregate transcript-usage stats, when a transcript scan ran. */
   usageSummary?: UsageSummary;

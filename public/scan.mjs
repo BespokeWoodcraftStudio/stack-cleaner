@@ -36,7 +36,7 @@ import readline from "node:readline";
 import { pathToFileURL } from "node:url";
 
 const SCHEMA_VERSION = 1;
-const GENERATOR = "scan.mjs@1.1.2";
+const GENERATOR = "scan.mjs@1.1.3";
 const HOME = os.homedir();
 const CLAUDE = path.join(HOME, ".claude");
 
@@ -379,6 +379,10 @@ export async function buildInventory(opts = {}) {
 
   const items = [];
   const projectNames = new Set();
+  // basename -> tilde'd `.claude` dir for each project that has any items. Emitted
+  // so the web app can show a project's on-disk location even when it has only MCP
+  // servers (which carry no per-item path for the UI to derive a location from).
+  const projectLocations = {};
 
   function addSkill(scope, project, dirName, skillDir) {
     const fm = parseFrontmatter(readText(path.join(skillDir, "SKILL.md")));
@@ -530,7 +534,10 @@ export async function buildInventory(opts = {}) {
       addMcp("project", project, name, cfg); touched = true;
     }
 
-    if (touched) projectNames.add(project);
+    if (touched) {
+      projectNames.add(project);
+      projectLocations[project] = tilde(path.join(projPath, ".claude"));
+    }
   }
 
   // ---- transcript usage overlay ----
@@ -599,6 +606,7 @@ export async function buildInventory(opts = {}) {
     generator: GENERATOR,
     machine: { platform: process.platform, node: process.version },
     projects: [...projectNames].sort((a, b) => a.localeCompare(b)),
+    projectLocations,
     items,
   };
   if (usageSummary) inventory.usageSummary = usageSummary;

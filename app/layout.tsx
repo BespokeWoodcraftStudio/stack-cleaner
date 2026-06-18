@@ -10,17 +10,17 @@ const SITE = "https://claude-inventory-tool.vercel.app";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
   title: {
-    default: "Claude Inventory Tool — see & organize your Claude setup",
+    default: "Claude Inventory Tool: see & organize your Claude setup",
     template: "%s · Claude Inventory Tool",
   },
   description:
-    "A free tool to see, organize, and clean up your Claude skills, plugins, MCP servers, and agents — split by global vs. project. Runs locally, sends nothing.",
+    "A free tool to see, organize, and clean up your Claude skills, plugins, MCP servers, and agents, split by global vs. project. Runs locally, sends nothing.",
   keywords: ["Claude", "Claude Code", "skills", "plugins", "MCP", "agents", "inventory", "cleanup"],
   alternates: { canonical: "/" },
   openGraph: {
     title: "Claude Inventory Tool",
     description:
-      "See and organize every Claude skill, plugin, MCP server, and agent — global vs. project. Free, local, private.",
+      "See and organize every Claude skill, plugin, MCP server, and agent: global vs. project. Free, local, private.",
     url: SITE,
     siteName: "Claude Inventory Tool",
     type: "website",

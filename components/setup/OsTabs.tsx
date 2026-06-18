@@ -41,7 +41,7 @@ export function OsTabs() {
             Type <code className="inline">Terminal</code> and press{" "}
             <span className="kbd">Enter</span>.
           </li>
-          <li>A small window with a blinking cursor opens. That&apos;s it — you&apos;re ready.</li>
+          <li>A small window with a blinking cursor opens. That&apos;s it. You&apos;re ready.</li>
         </ol>
       ) : (
         <ol className="setup-list" aria-label="Open PowerShell on Windows">

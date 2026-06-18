@@ -1,9 +1,9 @@
 {
   "name": "claude-inventory-tool",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "private": false,
   "license": "MIT",
-  "description": "See, organize, and clean up your Claude Code skills, plugins, MCP servers, and agents — split by global vs. project.",
+  "description": "See, organize, and clean up your Claude Code skills, plugins, MCP servers, and agents (split by global vs. project).",
   "bin": {
     "claude-inventory-tool": "bin/cli.mjs"
   },

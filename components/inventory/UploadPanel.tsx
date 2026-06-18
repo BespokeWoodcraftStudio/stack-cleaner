@@ -47,7 +47,7 @@ export function UploadPanel({
     const file = list[0];
     if (file.size > MAX_BYTES) {
       setError(
-        `That file is ${(file.size / 1048576).toFixed(1)} MB — too big to be an inventory. ` +
+        `That file is ${(file.size / 1048576).toFixed(1)} MB, too big to be an inventory. ` +
         "A real claude-inventory.json is only a few KB. Pick the file scan.mjs produced.",
       );
       return;
@@ -81,7 +81,7 @@ export function UploadPanel({
           <div className="stack gap-1 center">
             <div style={{ fontSize: 17, fontWeight: 620 }}>Drop your <code className="inline">claude-inventory.json</code> here</div>
             <div className="muted" style={{ fontSize: 14 }}>
-              {loading ? "Reading your file…" : "or choose it manually — nothing leaves your browser"}
+              {loading ? "Reading your file…" : "or choose it manually: nothing leaves your browser"}
             </div>
           </div>
           <div className="row gap-2 wrap center">
@@ -121,7 +121,7 @@ export function UploadPanel({
 
       {error && (
         <div role="alert" className="card" style={{ borderColor: "var(--bad)", background: "var(--bad-tint)", color: "var(--fg)" }}>
-          <strong style={{ color: "var(--bad)" }}>Hmm — </strong>{error}
+          <strong style={{ color: "var(--bad)" }}>Hmm. </strong>{error}
         </div>
       )}
 

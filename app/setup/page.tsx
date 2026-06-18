@@ -57,7 +57,7 @@ export default function Setup() {
         </span>
         <h1 className="section-title">Load your inventory in about two minutes</h1>
         <p className="lead">
-          No coding, no GitHub account, nothing to install beyond Claude Code — which you already
+          No coding, no GitHub account, nothing to install beyond Claude Code, which you already
           have. You&apos;ll run one command, then drop the file it makes into this app. That&apos;s
           the whole thing.
         </p>
@@ -79,7 +79,7 @@ export default function Setup() {
         {/* Step 1 — terminal */}
         <Step n={1} title="Open your terminal">
           <p className="setup-text">
-            The terminal is a plain window where you type a command and press Enter — think of it as
+            The terminal is a plain window where you type a command and press Enter. Think of it as
             a text box for talking to your computer. You won&apos;t need to know anything about it
             beyond opening it. Pick your computer below:
           </p>
@@ -92,7 +92,7 @@ export default function Setup() {
         <Step n={2} title="Paste this one command and press Enter">
           <p className="setup-text">
             Copy the line below, click into the terminal window, paste it, and press{" "}
-            <span className="kbd">Enter</span>. This one command is the same on every computer — Mac,
+            <span className="kbd">Enter</span>. This one command is the same on every computer: Mac,
             Windows, or Linux:
           </p>
           <div style={{ marginTop: 16, marginBottom: 12 }}>
@@ -136,7 +136,7 @@ export default function Setup() {
               <Shield size={16} />
             </span>
             <p className="setup-text" style={{ margin: 0 }}>
-              Your API keys and tokens are <strong>stripped out</strong> before the file is written —
+              Your API keys and tokens are <strong>stripped out</strong> before the file is written;
               they never make it into the file. The script is short, has no dependencies, and you can{" "}
               <a
                 href="/scan.mjs"
@@ -153,10 +153,10 @@ export default function Setup() {
           <p className="setup-text muted" style={{ marginTop: 14, fontSize: 13.5 }}>
             This uses Node, which comes with Claude Code. If you ever see{" "}
             <code className="inline">node: command not found</code> (or &ldquo;not recognized&rdquo;
-            on Windows), close and reopen the terminal — or install Node from{" "}
+            on Windows), close and reopen the terminal, or install Node from{" "}
             <a href="https://nodejs.org" target="_blank" rel="noopener noreferrer"
               style={{ color: "var(--accent-soft)", textDecoration: "underline" }}>nodejs.org</a>{" "}
-            — then paste the line again. On older Windows without{" "}
+            then paste the line again. On older Windows without{" "}
             <code className="inline">curl.exe</code>, swap the first part for{" "}
             <code className="inline">iwr {SITE_URL}/scan.mjs -OutFile claude-inventory-scan.mjs</code>,
             or just open <a href="/scan.mjs" target="_blank" rel="noopener noreferrer"
@@ -178,7 +178,7 @@ export default function Setup() {
                 <ScanCommand variant="twoStep" showToggle={false} />
               </div>
               <p className="setup-text faint" style={{ marginTop: 12, marginBottom: 0 }}>
-                Running it creates the data file <code className="inline">claude-inventory.json</code> —
+                Running it creates the data file <code className="inline">claude-inventory.json</code>:
                 that&apos;s the one you drop into the app. The result is identical to the one-liner; you
                 just get to inspect the script in between.
               </p>
@@ -192,7 +192,7 @@ export default function Setup() {
             When the command finishes, the terminal prints a line like{" "}
             <code className="inline">✓ wrote claude-inventory.json</code> with the exact location.
             The file is named <code className="inline">claude-inventory.json</code> and it&apos;s
-            saved in whatever folder the terminal was pointing at — for a terminal you just opened,
+            saved in whatever folder the terminal was pointing at: for a terminal you just opened,
             that&apos;s your home folder (the one with your name on it). On a Mac that&apos;s{" "}
             <code className="inline">/Users/you</code>; on Windows it&apos;s{" "}
             <code className="inline">C:\Users\you</code> (the first entry under Home / Quick access in
@@ -206,7 +206,7 @@ export default function Setup() {
               <Check size={16} />
             </span>
             <p className="setup-text" style={{ margin: 0 }}>
-              Don&apos;t worry about hunting for it on disk — in the next step you can open your file
+              Don&apos;t worry about hunting for it on disk: in the next step you can open your file
               browser to that folder and pick it (on a Mac you can also drag it straight out of the
               terminal).
             </p>
@@ -217,7 +217,7 @@ export default function Setup() {
         <Step n={4} title="Drop it into the app">
           <p className="setup-text">
             Open the inventory page, then drag the{" "}
-            <code className="inline">claude-inventory.json</code> file onto it — or click{" "}
+            <code className="inline">claude-inventory.json</code> file onto it, or click{" "}
             <strong>Choose file</strong> and pick it. From that moment on, everything stays inside
             your browser; nothing is uploaded.
           </p>
@@ -250,8 +250,7 @@ export default function Setup() {
               vs{" "}
               <span className="badge project" style={{ verticalAlign: "middle" }}>
                 <span className="dot" /> Project
-              </span>{" "}
-              — every skill, plugin, MCP server, and agent grouped by where it actually lives.
+              </span>: every skill, plugin, MCP server, and agent grouped by where it actually lives.
             </span>
           </li>
           <li>

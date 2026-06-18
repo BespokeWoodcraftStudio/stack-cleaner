@@ -70,7 +70,7 @@ export function InventoryClient() {
   const items = inventory.items;
   const stats = useMemo(() => computeStats(items), [items]);
   const filtered = useMemo(() => filterItems(items, filters), [items, filters]);
-  const groups = useMemo(() => groupByScope(filtered), [filtered]);
+  const groups = useMemo(() => groupByScope(filtered, inventory.projectLocations), [filtered, inventory.projectLocations]);
   const selectedItems = useMemo(() => items.filter((i) => selected.has(i.id)), [items, selected]);
 
   const toggle = useCallback((id: string) => {
@@ -95,7 +95,7 @@ export function InventoryClient() {
           <h1 style={{ fontSize: 26 }}>Your inventory</h1>
           <div className="muted" style={{ fontSize: 14 }}>
             {isDemo
-              ? "Exploring demo data — every skill, plugin, MCP server, and agent, split by where it lives."
+              ? "Exploring demo data: every skill, plugin, MCP server, and agent, split by where it lives."
               : <>Scanned from <code className="inline">{sourceName}</code>{inventory.generatedAt && inventory.generatedAt !== new Date(0).toISOString() ? ` · ${new Date(inventory.generatedAt).toLocaleString()}` : ""}{inventory.machine?.platform ? ` · ${inventory.machine.platform}` : ""}</>}
           </div>
         </div>
@@ -445,7 +445,7 @@ function PrivacyNote() {
       <Shield size={16} />
       <span>
         Everything here stays in your browser. Your inventory is parsed locally and saved only to this device&apos;s
-        storage — nothing is ever uploaded. <Trash size={12} /> Clearing resets it.
+        storage. Nothing is ever uploaded. <Trash size={12} /> Clearing resets it.
       </span>
     </div>
   );

@@ -5,10 +5,10 @@ import { Shield, Arrow, Upload, Github } from "@/components/ui/icons";
 export const metadata: Metadata = {
   title: "FAQ",
   description:
-    "Answers to the common questions about the Claude Inventory Tool — what's uploaded (nothing), whether secrets are safe, what it can change (nothing), Windows support, and more.",
+    "Answers to the common questions about the Claude Inventory Tool: what's uploaded (nothing), whether secrets are safe, what it can change (nothing), Windows support, and more.",
   alternates: { canonical: "/faq" },
   openGraph: {
-    title: "Claude Inventory Tool — FAQ",
+    title: "Claude Inventory Tool: FAQ",
     description:
       "Is anything uploaded? Are my keys safe? Can it delete things? Plain answers to the questions people ask most.",
     url: "/faq",
@@ -55,8 +55,8 @@ export default function Faq() {
 
         <Item q="Can it delete or change anything on my computer?">
           <p>
-            No. The scan only reads. The cleanup features only <strong>generate text</strong> — a
-            paste-to-Claude prompt, a shell script, or JSON — that you review and run yourself. The
+            No. The scan only reads. The cleanup features only <strong>generate text</strong> (a
+            paste-to-Claude prompt, a shell script, or JSON) that you review and run yourself. The
             tool never touches your files.
           </p>
         </Item>
@@ -71,11 +71,11 @@ export default function Faq() {
           </p>
           <p style={{ marginTop: 10 }}>
             One caveat: skill and agent descriptions are prose copied from frontmatter. We run a
-            best-effort scrub over them, but it isn&apos;t a guarantee — don&apos;t keep secrets in a{" "}
+            best-effort scrub over them, but it isn&apos;t a guarantee. Don&apos;t keep secrets in a{" "}
             <code className="inline">SKILL.md</code> description. If you ever spot an unredacted
             secret, see{" "}
-            <a href={SECURITY} target="_blank" rel="noopener noreferrer" style={docLink}>SECURITY.md</a>{" "}
-            — rotate the credential first, then report it privately.
+            <a href={SECURITY} target="_blank" rel="noopener noreferrer" style={docLink}>SECURITY.md</a>:{" "}
+            rotate the credential first, then report it privately.
           </p>
         </Item>
 
@@ -91,13 +91,13 @@ export default function Faq() {
           <p>
             The scan reads your local Claude Code transcripts (the session logs in{" "}
             <code className="inline">~/.claude/projects</code>) and counts how many times each skill,
-            agent, and MCP server was actually invoked — plus when it was last used. That&apos;s how
+            agent, and MCP server was actually invoked, plus when it was last used. That&apos;s how
             the tool can show &ldquo;installed but never used,&rdquo; even for MCP servers and agents,
             which carry no usage count in plain config.
           </p>
           <p style={{ marginTop: 10 }}>
             It reads <strong>only the tool, skill, agent, and MCP-server names, the counts, and the
-            timestamps</strong> — never your prompts, message text, arguments, file paths, or command
+            timestamps</strong>: never your prompts, message text, arguments, file paths, or command
             contents. It all stays on your machine until you choose to upload the file. To skip the
             transcript read entirely, run the scan with <code className="inline">--no-transcripts</code>.
           </p>
@@ -111,12 +111,12 @@ export default function Faq() {
           </p>
         </Item>
 
-        <Item q="I don't trust “curl | node” — what else can I do?">
+        <Item q="I don't trust “curl | node”. What else can I do?">
           <p>That&apos;s a healthy instinct. You have options, lightest-touch first:</p>
           <ul style={{ margin: "8px 0 0", paddingLeft: 20 }}>
             <li>
               Run <code className="inline">npx claude-inventory-tool</code> instead. No pipe, no{" "}
-              <code className="inline">curl</code> — npm fetches the published, versioned package and
+              <code className="inline">curl</code>: npm fetches the published, versioned package and
               runs it. It&apos;s the same code as <code className="inline">/scan.mjs</code>, just
               delivered through npm.
             </li>
@@ -126,13 +126,13 @@ export default function Faq() {
             </li>
             <li>Clone the repo and run <code className="inline">node public/scan.mjs</code> from source.</li>
           </ul>
-          <p style={{ marginTop: 10 }}>Either way you run the exact same code — just after you&apos;ve looked at it.</p>
+          <p style={{ marginTop: 10 }}>Either way you run the exact same code, just after you&apos;ve looked at it.</p>
         </Item>
 
         <Item q="Where is the file saved?">
           <p>
             In the folder your terminal was in when you ran the scan. The scanner prints the exact
-            path with a <code className="inline">✓</code> when it finishes — trust that line. For a
+            path with a <code className="inline">✓</code> when it finishes. Trust that line. For a
             terminal you just opened, it&apos;s usually your home folder.
           </p>
         </Item>
@@ -147,7 +147,7 @@ export default function Faq() {
 
         <Item q="Is it really free and open source?">
           <p>
-            Yes — free and open source under the MIT license. The full source is on{" "}
+            Yes: free and open source under the MIT license. The full source is on{" "}
             <a href={REPO} target="_blank" rel="noopener noreferrer" style={docLink}>GitHub</a>: read
             it, run it, fork it, or self-host your own copy.
           </p>

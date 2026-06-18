@@ -18,12 +18,27 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [1.1.3] - 2026-06-17
+
 ### Added
 
 - Each scope group in the inventory now shows its on-disk location next to the
-  name (e.g. `~/.claude` for Global, `~/Documents/GitHub/.claude` for a project),
-  derived from the items' paths. Makes it obvious where a skill or agent actually
-  lives, and which folder a project group maps to.
+  name (e.g. `~/.claude` for Global, `~/Documents/GitHub/.claude` for a project).
+  Makes it obvious where a skill or agent actually lives, and which folder a
+  project group maps to.
+- **Explicit per-project location from the scanner.** `public/scan.mjs` now emits
+  a `projectLocations` map (each project basename to its on-disk `.claude`
+  directory). The web app prefers it when labeling a project group, so a project
+  that has only MCP servers (and therefore no path-bearing item to derive a
+  location from) still shows where it lives. Backward compatible: older scans omit
+  the map and the app falls back to deriving the path from item paths. No
+  `schemaVersion` change and no change to redaction.
+
+### Changed
+
+- Swept em-dashes out of the rendered website copy (landing, setup, FAQ,
+  inventory, demo data, and page metadata), replacing each with natural
+  punctuation. Copy only; no behavior change.
 
 ## [1.1.2] - 2026-06-17
 

@@ -40,7 +40,7 @@ export function UsageSummary({ inventory, filters, setFilters }: {
         <span className="badge accent">Usage</span>
         <span className="muted" style={{ fontSize: 13.5 }}>
           Read from <strong style={{ color: "var(--fg-soft)" }}>{fmtCount(s.transcriptsScanned)}</strong>{" "}
-          transcript{s.transcriptsScanned === 1 ? "" : "s"} —{" "}
+          transcript{s.transcriptsScanned === 1 ? "" : "s"}:{" "}
           <strong style={{ color: "var(--fg-soft)" }}>{fmtCount(s.totalInvocations)}</strong> tool invocation
           {s.totalInvocations === 1 ? "" : "s"} recorded.
         </span>

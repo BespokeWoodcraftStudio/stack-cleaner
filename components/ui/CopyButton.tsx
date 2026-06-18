@@ -39,7 +39,7 @@ export function CopyButton({
       type="button"
       className={className}
       onClick={onCopy}
-      aria-label={failed ? "Couldn't copy automatically — select the text and press Ctrl or Cmd + C" : label}
+      aria-label={failed ? "Couldn't copy automatically. Select the text and press Ctrl or Cmd + C" : label}
     >
       {copied ? <Check size={size} /> : <Copy size={size} />}
       <span aria-live="polite">{text2}</span>
