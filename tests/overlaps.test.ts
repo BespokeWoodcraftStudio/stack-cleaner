@@ -85,9 +85,10 @@ describe("withOverlaps + stats + filter", () => {
   it("counts redundant items and lists their ids", () => {
     expect(computeStats(annotated).redundantCount).toBe(1);
     expect(redundantIds(annotated)).toEqual(["skill:global:seo-content"]);
+    expect(computeStats(annotated).overlapCount).toBe(2);
   });
 
   it("filters to overlaps only", () => {
-    expect(filterItems(annotated, { ...DEFAULT_FILTERS, overlapOnly: true })).toHaveLength(1);
+    expect(filterItems(annotated, { ...DEFAULT_FILTERS, overlapOnly: true })).toHaveLength(2);
   });
 });

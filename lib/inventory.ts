@@ -370,22 +370,25 @@ export interface Stats {
   byUsage: Record<UsageClass, number>;
   unusedCount: number; // bad + warn
   redundantCount: number; // items with a `redundant` overlap relation
+  overlapCount: number;   // items with at least one overlap relation (any role)
 }
 
 export function computeStats(items: InventoryItem[]): Stats {
   const byType = { skill: 0, plugin: 0, mcp: 0, agent: 0 } as Record<ItemType, number>;
   const byUsage = { good: 0, warn: 0, bad: 0, info: 0, unknown: 0 } as Record<UsageClass, number>;
-  let global = 0, project = 0, redundantCount = 0;
+  let global = 0, project = 0, redundantCount = 0, overlapCount = 0;
   for (const it of items) {
     byType[it.type]++;
     byUsage[it.usageClass || "unknown"]++;
     if (it.scope === "global") global++; else project++;
     if (it.overlaps?.some((r) => r.role === "redundant")) redundantCount++;
+    if (it.overlaps && it.overlaps.length > 0) overlapCount++;
   }
   return {
     total: items.length, global, project, byType, byUsage,
     unusedCount: byUsage.bad + byUsage.warn,
     redundantCount,
+    overlapCount,
   };
 }
 
@@ -407,7 +410,7 @@ export const DEFAULT_FILTERS: Filters = {
 export function filterItems(items: InventoryItem[], f: Filters): InventoryItem[] {
   const q = f.query.trim().toLowerCase();
   return items.filter((it) => {
-    if (f.overlapOnly && !it.overlaps?.some((r) => r.role === "redundant")) return false;
+    if (f.overlapOnly && !(it.overlaps && it.overlaps.length > 0)) return false;
     if (f.type !== "all" && it.type !== f.type) return false;
     if (f.scope !== "all" && it.scope !== f.scope) return false;
     if (f.project !== "all" && (it.project || "") !== f.project) return false;
