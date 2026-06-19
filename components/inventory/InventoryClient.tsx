@@ -396,7 +396,7 @@ function ItemRow({ item, checked, onToggle }: { item: InventoryItem; checked: bo
       />
       <div className="stack gap-1 grow" style={{ minWidth: 0 }}>
         <div className="row gap-2 wrap">
-          <span className="mono" style={{ fontWeight: 600, fontSize: 14, color: checked ? "var(--fg)" : "var(--fg)", textDecoration: checked ? "line-through" : "none", textDecorationColor: "var(--bad)" }}>
+          <span className="mono" style={{ fontWeight: 600, fontSize: 14, color: "var(--fg)", textDecorationLine: checked ? "line-through" : "none", textDecorationColor: "var(--bad)" }}>
             {item.name}
           </span>
           <span className={`badge ${TYPE_TONE[item.type]}`}>{TYPE_META[item.type].label}</span>
