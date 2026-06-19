@@ -18,6 +18,32 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-06-19
+
+### Added
+
+- **Overlap and duplicate detection.** The scanner now records what each plugin
+  bundles (`bundles` field per plugin item): which skills, agents, and MCP servers
+  ship inside it. The inventory uses this to flag three kinds of redundancy:
+  - *Superseded standalone items* -- a skill, agent, or MCP server you also have
+    installed standalone but which a plugin already provides.
+  - *Same-name duplicates* -- two items of the same type with the same name across
+    different scopes or projects.
+  - *Duplicate MCP servers* -- servers that share a command-and-args fingerprint,
+    regardless of what they are named.
+  Each overlap carries a recommended survivor (the plugin copy wins over standalone;
+  otherwise the higher-usage copy wins) so the drawer can apply a principled clean-up.
+- **"Overlaps" filter.** A new filter button in the inventory toolbar narrows the
+  view to items flagged as redundant, letting you act on them without scrolling
+  through the full list.
+- **Redundant stat.** The stats bar now shows a "redundant" count alongside the
+  existing skill / agent / MCP / plugin totals.
+- **One-click "Select N redundant copies" action.** A single button pre-selects all
+  redundant items and opens the cleanup drawer, ready to generate the remove script.
+- **`SCHEMA_VERSION` bumped to 2.** Scan files produced without `bundles` (i.e.
+  from any version before 1.2.0) still load and parse correctly -- the field is
+  optional and the overlap pass simply produces no overlap signals for those files.
+
 ## [1.1.5] - 2026-06-18
 
 ### Changed
