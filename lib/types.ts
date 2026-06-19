@@ -4,7 +4,7 @@
 // whole UI reads it. Keep the two in sync; bump SCHEMA_VERSION on change.
 // =============================================================
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 /** The four kinds of things Claude Code installs. */
 export type ItemType = "skill" | "plugin" | "mcp" | "agent";
@@ -26,6 +26,31 @@ export type UsageClass = "good" | "warn" | "bad" | "info" | "unknown";
  *  - "none"         no usage signal available
  */
 export type UsageSource = "transcripts" | "claude-json" | "none";
+
+/** What an installed plugin bundles (names only), emitted by the scan for plugin items. */
+export interface PluginBundles {
+  skills?: string[];
+  agents?: string[];
+  mcps?: string[];
+}
+
+/** Kinds of structural overlap the tool detects. */
+export type OverlapKind = "bundled-in-plugin" | "duplicate-name" | "duplicate-mcp";
+
+/** This item's role in an overlap relation. `redundant` items are the safe bulk-remove set. */
+export type OverlapRole = "redundant" | "survivor" | "peer";
+
+/** A single structural overlap between this item and another (computed in-browser). */
+export interface OverlapRelation {
+  kind: OverlapKind;
+  role: OverlapRole;
+  /** The other item's id (or the plugin's id for bundled-in-plugin). */
+  withId: string;
+  /** Display label for the other side, e.g. "claude-seo-skills". */
+  withLabel: string;
+  /** Human-readable note, e.g. "superseded by plugin claude-seo-skills". */
+  note: string;
+}
 
 export interface InventoryItem {
   /** Stable unique id, e.g. "skill:global:graphify" or "mcp:project:my-app:ahrefs". */
@@ -62,6 +87,12 @@ export interface InventoryItem {
   lastUsed?: number | null;
   /** Where the usage signal came from. */
   usageSource?: UsageSource;
+
+  // ---- overlap / duplicate signal ----
+  /** Plugin-only: what this plugin bundles (skills/agents/mcps). Emitted by the scan. */
+  bundles?: PluginBundles;
+  /** Structured overlaps this item participates in (computed in-browser by computeOverlaps). */
+  overlaps?: OverlapRelation[];
 
   // ---- curation (optional, demo-only / user-added) ----
   /** Note about other items this overlaps/duplicates. */

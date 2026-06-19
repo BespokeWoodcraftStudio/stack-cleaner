@@ -126,3 +126,19 @@ describe("deriveRemoveCmd & buildShellManifest", () => {
     expect(m).toContain("rm -rf ~/.claude/skills/x");
   });
 });
+
+describe("parseInventory — bundles", () => {
+  it("keeps a plugin's bundles and ignores bundles on non-plugins", () => {
+    const inv = parseInventory({
+      schemaVersion: 2,
+      items: [
+        { type: "plugin", scope: "global", name: "p", source: "m 1.0.0", bundles: { skills: ["a", "b"], junk: 1 } },
+        { type: "skill", scope: "global", name: "a", bundles: { skills: ["nope"] } },
+      ],
+    });
+    const plugin = inv.items.find((i) => i.type === "plugin");
+    const skill = inv.items.find((i) => i.type === "skill");
+    expect(plugin?.bundles).toEqual({ skills: ["a", "b"] });
+    expect(skill?.bundles).toBeUndefined();
+  });
+});

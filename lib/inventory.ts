@@ -96,6 +96,19 @@ function collapseScanDuplicates(items: InventoryItem[]): InventoryItem[] {
   });
 }
 
+/** Coerce an unknown blob into PluginBundles, keeping only string[] entries. */
+function parseBundles(raw: unknown): import("./types").PluginBundles | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const r = raw as Record<string, unknown>;
+  const arr = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : undefined);
+  const skills = arr(r.skills), agents = arr(r.agents), mcps = arr(r.mcps);
+  const out: import("./types").PluginBundles = {};
+  if (skills && skills.length) out.skills = skills;
+  if (agents && agents.length) out.agents = agents;
+  if (mcps && mcps.length) out.mcps = mcps;
+  return Object.keys(out).length ? out : undefined;
+}
+
 /** Validate + normalize an unknown blob (parsed from an uploaded file or paste). */
 export function parseInventory(raw: unknown): Inventory {
   if (!raw || typeof raw !== "object") {
@@ -133,6 +146,7 @@ export function parseInventory(raw: unknown): Inventory {
       source,
       path: asString(r.path),
       version: asString(r.version),
+      bundles: type === "plugin" ? parseBundles(r.bundles) : undefined,
       usageCount: typeof r.usageCount === "number" ? r.usageCount : null,
       lastUsedAt: typeof r.lastUsedAt === "number" ? r.lastUsedAt : null,
       usageClass,
