@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-01-01T00:00:00.000Z",
+  "generator": "scan.mjs@1.2.0 (synthetic example)",
+  "machine": { "platform": "darwin", "node": "v22" },
+  "projects": ["my-app"],
+  "projectLocations": { "my-app": "~/code/my-app/.claude" },
+  "items": [
+    {
+      "id": "skill:global:seo-content",
+      "type": "skill",
+      "scope": "global",
+      "project": null,
+      "name": "seo-content",
+      "description": "Content quality + E-E-A-T audit for a page or draft.",
+      "path": "~/.claude/skills/seo-content",
+      "usageClass": "bad",
+      "usageLabel": "never",
+      "invocationCount": 0,
+      "lastUsed": null,
+      "usageSource": "transcripts"
+    },
+    {
+      "id": "skill:global:graphify",
+      "type": "skill",
+      "scope": "global",
+      "project": null,
+      "name": "graphify",
+      "description": "Turn any folder of files into a navigable knowledge graph.",
+      "path": "~/.claude/skills/graphify",
+      "usageClass": "good",
+      "usageLabel": "✅ 142 uses",
+      "invocationCount": 142,
+      "lastUsed": 1767225600000,
+      "usageSource": "transcripts"
+    },
+    {
+      "id": "plugin:global:seo-suite",
+      "type": "plugin",
+      "scope": "global",
+      "project": null,
+      "name": "seo-suite",
+      "description": "",
+      "source": "example-marketplace",
+      "version": "1.0.0",
+      "path": "~/.claude/plugins/cache/example-marketplace/seo-suite/1.0.0",
+      "usageClass": "good",
+      "usageLabel": "✅ 30 calls",
+      "bundles": {
+        "skills": ["seo-content", "seo-audit", "seo-technical"],
+        "agents": ["seo-reviewer"],
+        "mcps": []
+      }
+    },
+    {
+      "id": "mcp:global:playwright",
+      "type": "mcp",
+      "scope": "global",
+      "project": null,
+      "name": "playwright",
+      "description": "Browser automation MCP (stdio transport).",
+      "source": "npx @playwright/mcp",
+      "usageClass": "info",
+      "usageLabel": "passive (surfaced on demand)"
+    },
+    {
+      "id": "agent:global:reviewer",
+      "type": "agent",
+      "scope": "global",
+      "project": null,
+      "name": "reviewer",
+      "description": "General code-review sub-agent.",
+      "path": "~/.claude/agents/reviewer.md",
+      "usageClass": "good",
+      "usageLabel": "✅ 8 uses",
+      "invocationCount": 8,
+      "lastUsed": 1767139200000,
+      "usageSource": "transcripts"
+    },
+    {
+      "id": "skill:project:my-app:deploy",
+      "type": "skill",
+      "scope": "project",
+      "project": "my-app",
+      "name": "deploy",
+      "description": "Run this project's checks, then deploy.",
+      "path": "~/code/my-app/.claude/skills/deploy",
+      "usageClass": "good",
+      "usageLabel": "✅ 12 uses",
+      "invocationCount": 12,
+      "lastUsed": 1767225600000,
+      "usageSource": "transcripts"
+    },
+    {
+      "id": "mcp:project:my-app:linear",
+      "type": "mcp",
+      "scope": "project",
+      "project": "my-app",
+      "name": "linear",
+      "description": "Linear issue tracker MCP (HTTP transport).",
+      "source": "https://mcp.linear.app",
+      "usageClass": "info",
+      "usageLabel": "passive (surfaced on demand)"
+    }
+  ],
+  "usageSummary": {
+    "totalInvocations": 162,
+    "itemsWithUsage": 4,
+    "itemsUnused": 1,
+    "transcriptsScanned": 120,
+    "generatedFrom": "transcripts"
+  }
+}
