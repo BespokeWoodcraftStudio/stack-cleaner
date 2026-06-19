@@ -426,7 +426,7 @@ function ItemRow({ item, checked, onToggle }: { item: InventoryItem; checked: bo
               ))}
               {survives > 0 && (
                 <span className="badge good" title="This plugin already provides items you also have installed standalone">
-                  ⧉ provides {survives} installed standalone{survives === 1 ? "" : "s"}
+                  ⧉ provides {survives} standalone {survives === 1 ? "copy" : "copies"}
                 </span>
               )}
             </div>

@@ -29,8 +29,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
     installed standalone but which a plugin already provides.
   - *Same-name duplicates* -- two items of the same type with the same name across
     different scopes or projects.
-  - *Duplicate MCP servers* -- servers that share a command-and-args fingerprint,
-    regardless of what they are named.
+  - *Duplicate MCP servers* -- the same MCP server name configured from more than
+    one source.
   Each overlap carries a recommended survivor (the plugin copy wins over standalone;
   otherwise the higher-usage copy wins) so the drawer can apply a principled clean-up.
 - **"Overlaps" filter.** A new filter button in the inventory toolbar narrows the
