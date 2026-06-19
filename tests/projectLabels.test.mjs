@@ -6,8 +6,8 @@ import { buildProjectLabels } from "../public/scan.mjs";
 
 describe("buildProjectLabels", () => {
   it("uses the bare basename when it is unique", () => {
-    const m = buildProjectLabels(["/home/me/code/my-app", "/home/me/code/api-server"]);
-    expect(m.get("/home/me/code/my-app")).toBe("my-app");
+    const m = buildProjectLabels(["/home/me/code/notes-app", "/home/me/code/api-server"]);
+    expect(m.get("/home/me/code/notes-app")).toBe("notes-app");
     expect(m.get("/home/me/code/api-server")).toBe("api-server");
   });
 

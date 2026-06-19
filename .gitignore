@@ -34,7 +34,7 @@ yarn-error.log*
 stack-cleaner.json
 /*-inventory.json
 
-# original private source moved out of my-app — preserved, never published
+# original private source preserved locally — never published
 /.archive/
 
 # graphify knowledge-graph output (local build artifact, not source)

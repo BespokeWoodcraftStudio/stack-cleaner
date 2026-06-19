@@ -115,7 +115,7 @@ export interface Inventory {
   projects: string[];
   /**
    * On-disk `.claude` directory per project basename, home-relative
-   * (e.g. {"my-app": "~/Documents/GitHub/my-app/.claude"}). Lets the UI label
+   * (e.g. {"my-app": "~/code/my-app/.claude"}). Lets the UI label
    * a project's location even when it has only MCP servers (which carry no
    * path-bearing item for the location to be derived from). Optional/back-compat:
    * older scans omit it and the UI falls back to deriving the path from items.
