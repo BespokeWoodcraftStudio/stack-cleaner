@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Shield, Arrow, Upload, Github } from "@/components/ui/icons";
+import { JsonLd } from "@/components/JsonLd";
+import { faqGraph, breadcrumbGraph } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "FAQ",
@@ -34,6 +36,8 @@ function Item({ q, defaultOpen = false, children }: { q: string; defaultOpen?: b
 export default function Faq() {
   return (
     <div className="container-narrow" style={{ paddingTop: 56, paddingBottom: 40 }}>
+      <JsonLd data={faqGraph} />
+      <JsonLd data={breadcrumbGraph("FAQ", "/faq")} />
       <header className="stack gap-4" style={{ marginBottom: 36 }}>
         <span className="eyebrow"><Shield size={14} /> Good to know</span>
         <h1 className="section-title">Frequently asked questions</h1>

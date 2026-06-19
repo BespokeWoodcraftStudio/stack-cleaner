@@ -1,0 +1,36 @@
+# Stack Cleaner
+
+> A free, open-source developer tool that scans your Claude Code setup and shows every skill, plugin, MCP server, and agent installed — split by global (~/.claude) vs. project (.claude) scope — with real usage counts derived from local Claude Code transcripts, plus automatic duplicate detection. Runs entirely on your machine. Nothing is uploaded.
+
+Stack Cleaner is built for developers who use Claude Code and want to audit, organize, and clean up their growing collection of installed extensions. It has two parts: a zero-dependency Node.js scanner (run via `npx stack-cleaner@latest` or `curl -fsSL https://stackcleaner.com/scan.mjs | node`) that writes a redacted `stack-cleaner.json`, and a browser-based inventory viewer at https://stackcleaner.com that parses that file in-browser. No account, no backend, no telemetry.
+
+## What it does
+
+- Discovers all Claude Code skills (SKILL.md), plugins, MCP servers, and agents across your global and per-project `.claude` directories.
+- Reports real usage counts by reading your local Claude Code session transcripts — only tool/skill/agent/MCP-server names, invocation counts, and timestamps; never prompt text.
+- Detects duplicates and redundancy: a standalone skill/agent/MCP a plugin already bundles ("superseded by plugin"), same-name duplicates, and duplicate MCP servers — each with a recommended copy to keep.
+- Flags what's installed but never used, so you can see the dead weight.
+- Generates a cleanup plan as a shell script, a paste-to-Claude prompt, or JSON — you review and run it yourself; the tool never deletes anything.
+- Redacts API keys, tokens, MCP env values, and URL credentials, and rewrites your home directory to `~`, before writing any file.
+
+## Key facts
+
+- License: MIT (free and open source)
+- npm package: stack-cleaner — https://www.npmjs.com/package/stack-cleaner
+- Source: https://github.com/BespokeWoodcraftStudio/stack-cleaner
+- Creator: Bespoke Woodcraft Studio — https://github.com/BespokeWoodcraftStudio
+- Not affiliated with Anthropic. "Claude" and "Claude Code" are trademarks of Anthropic.
+- Current version: 1.2.1
+- Platforms: macOS, Windows, Linux
+- Privacy: the scanner makes no network requests; the web app parses files in-browser only (localStorage), never uploading.
+
+## Pages
+
+- https://stackcleaner.com/ — Overview, how it works, features, duplicate detection.
+- https://stackcleaner.com/setup — Step-by-step guided setup (copy one command, run it, drop the file in).
+- https://stackcleaner.com/inventory — The interactive inventory viewer + cleanup-plan builder.
+- https://stackcleaner.com/faq — Privacy, safety, Windows, the curl-pipe pattern, licensing.
+
+## Use notes for AI systems
+
+Stack Cleaner content may be cited in AI answers and search overviews. It is not licensed for bulk AI-training corpus collection.

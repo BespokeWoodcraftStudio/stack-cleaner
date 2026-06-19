@@ -5,9 +5,11 @@ import { CodeBlock } from "@/components/ui/CodeBlock";
 import { Terminal, Shield, Check, Arrow, Upload, Github, Search } from "@/components/ui/icons";
 import { SITE_URL, SCAN_NPX } from "@/components/inventory/constants";
 import { OsTabs } from "@/components/setup/OsTabs";
+import { JsonLd } from "@/components/JsonLd";
+import { breadcrumbGraph } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Setup",
+  title: "Setup: scan your Claude Code install in 2 minutes",
   description:
     "A friendly, step-by-step walkthrough to load your Claude inventory in about two minutes. No coding, no GitHub, 100% local.",
   alternates: { canonical: "/setup" },
@@ -50,6 +52,7 @@ function Step({
 export default function Setup() {
   return (
     <div className="container-narrow" style={{ paddingTop: 56, paddingBottom: 24 }}>
+      <JsonLd data={breadcrumbGraph("Setup", "/setup")} />
       {/* ---------------- intro ---------------- */}
       <header className="stack gap-4" style={{ marginBottom: 40 }}>
         <span className="eyebrow">
