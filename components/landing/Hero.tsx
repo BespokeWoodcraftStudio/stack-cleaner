@@ -19,14 +19,16 @@ export function Hero() {
             </span>
 
             <h1 className="lp-h1">
-              See everything you&rsquo;ve installed in Claude&nbsp;&mdash;{" "}
-              <span className="lp-accent">and tidy up the ones you forgot</span>
+              See everything in your Claude&nbsp;Code setup&nbsp;&mdash;{" "}
+              <span className="lp-accent">and clean up what you forgot</span>
             </h1>
 
             <p className="lead lp-subhead">
-              A free tool that maps every skill, plugin, MCP server, and agent in your
-              Claude setup &mdash; split by global vs. project, with real usage
-              counts &mdash; so you can clean out the clutter in minutes.
+              Stack Cleaner is a free, open-source tool that scans your Claude Code setup and
+              shows every skill, plugin, MCP server, and agent you have &mdash; split by global
+              vs. project, with real usage counts and automatic duplicate detection &mdash; so you
+              can see what&rsquo;s unused, find what&rsquo;s redundant, and clean up in minutes. It
+              runs entirely on your machine; nothing is uploaded.
             </p>
 
             <div className="row gap-2 wrap lp-cta-row">
