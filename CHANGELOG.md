@@ -18,6 +18,17 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [1.2.2] - 2026-06-19
+
+### Added
+
+- **SEO + AI-search foundation.** JSON-LD structured data (`Organization`, `WebSite`,
+  `SoftwareApplication`, `BreadcrumbList`, `FAQPage`), a `public/llms.txt` for AI search
+  engines, explicit AI-crawler rules in `robots.txt`, HTTP security headers, and
+  keyword-optimized page titles/descriptions + a self-contained homepage definition.
+- **npm package metadata.** Added `homepage` (stackcleaner.com), `repository`, `bugs`,
+  and `keywords` so the npm listing links back to the site and source.
+
 ## [1.2.1] - 2026-06-19
 
 ### Fixed
@@ -248,6 +259,7 @@ Initial public release.
 - **The scan only reads.** It makes no network request and never installs,
   modifies, or removes anything.
 
-[Unreleased]: https://github.com/BespokeWoodcraftStudio/stack-cleaner/compare/v1.2.1...HEAD
+[Unreleased]: https://github.com/BespokeWoodcraftStudio/stack-cleaner/compare/v1.2.2...HEAD
+[1.2.2]: https://github.com/BespokeWoodcraftStudio/stack-cleaner/releases/tag/v1.2.2
 [1.2.1]: https://github.com/BespokeWoodcraftStudio/stack-cleaner/releases/tag/v1.2.1
 [1.2.0]: https://github.com/BespokeWoodcraftStudio/stack-cleaner/releases/tag/v1.2.0

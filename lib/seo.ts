@@ -8,7 +8,7 @@
 export const SITE = "https://stackcleaner.com";
 export const REPO = "https://github.com/BespokeWoodcraftStudio/stack-cleaner";
 export const NPM = "https://www.npmjs.com/package/stack-cleaner";
-export const SOFTWARE_VERSION = "1.2.1";
+export const SOFTWARE_VERSION = "1.2.2";
 
 const ORG_ID = `${SITE}/#org`;
 const WEBSITE_ID = `${SITE}/#website`;

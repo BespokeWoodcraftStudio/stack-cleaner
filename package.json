@@ -1,9 +1,29 @@
 {
   "name": "stack-cleaner",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "private": false,
   "license": "MIT",
-  "description": "See, organize, and clean up your Claude Code skills, plugins, MCP servers, and agents (split by global vs. project).",
+  "description": "See, organize, and clean up your Claude Code skills, plugins, MCP servers, and agents (split by global vs. project), with real usage counts and duplicate detection.",
+  "homepage": "https://stackcleaner.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BespokeWoodcraftStudio/stack-cleaner.git"
+  },
+  "bugs": {
+    "url": "https://github.com/BespokeWoodcraftStudio/stack-cleaner/issues"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "skills",
+    "plugins",
+    "mcp",
+    "agents",
+    "cleanup",
+    "inventory",
+    "cli",
+    "developer-tools"
+  ],
   "bin": {
     "stack-cleaner": "bin/cli.mjs"
   },
