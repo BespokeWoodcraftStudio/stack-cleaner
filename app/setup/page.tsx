@@ -92,7 +92,7 @@ export default function Setup() {
         </Step>
 
         {/* Step 2 — paste the command */}
-        <Step n={2} title="Paste this one command and press Enter">
+        <Step n={2} title="How do I run the scan?">
           <p className="setup-text">
             Copy the line below, click into the terminal window, paste it, and press{" "}
             <span className="kbd">Enter</span>. This one command is the same on every computer: Mac,
@@ -190,7 +190,7 @@ export default function Setup() {
         </Step>
 
         {/* Step 3 — find the file */}
-        <Step n={3} title="Find the file it made">
+        <Step n={3} title="Where is the file saved?">
           <p className="setup-text">
             When the command finishes, the terminal prints a line like{" "}
             <code className="inline">✓ wrote stack-cleaner.json</code> with the exact location.
@@ -217,7 +217,7 @@ export default function Setup() {
         </Step>
 
         {/* Step 4 — drop it in */}
-        <Step n={4} title="Drop it into the app">
+        <Step n={4} title="How do I open my inventory?">
           <p className="setup-text">
             Open the inventory page, then drag the{" "}
             <code className="inline">stack-cleaner.json</code> file onto it, or click{" "}

@@ -23,8 +23,9 @@ const SUPPORT = `${REPO}/blob/main/SUPPORT.md`;
 
 const docLink = { color: "var(--accent-soft)", textDecoration: "underline" } as const;
 
-/** One Q&A accordion. The first is open by default so the page never looks empty. */
-function Item({ q, defaultOpen = false, children }: { q: string; defaultOpen?: boolean; children: React.ReactNode }) {
+/** One Q&A accordion. All items render open by default so every answer is in the
+ *  initial SSR HTML (crawler/AI friendly); they stay user-collapsible. */
+function Item({ q, defaultOpen = true, children }: { q: string; defaultOpen?: boolean; children: React.ReactNode }) {
   return (
     <details className="faq-item" {...(defaultOpen ? { open: true } : {})}>
       <summary>{q}</summary>
@@ -48,7 +49,7 @@ export default function Faq() {
       </header>
 
       <div className="stack gap-2">
-        <Item q="Is anything uploaded?" defaultOpen>
+        <Item q="Is anything uploaded?">
           <p>
             No. The scan runs on your machine and never makes a network request. The web app parses
             your <code className="inline">stack-cleaner.json</code> in the browser and keeps it only

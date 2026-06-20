@@ -72,6 +72,51 @@ export function breadcrumbGraph(name: string, path: string) {
 }
 
 /**
+ * Article + BreadcrumbList for a long-form guide page. The Article references
+ * the site Organization (by @id) as both author and publisher, and points
+ * mainEntityOfPage at its own canonical URL. Dates are static; bump
+ * `dateModified` only when the guide's content actually changes.
+ */
+export function articleGraph({
+  headline,
+  description,
+  path,
+  breadcrumbName,
+  datePublished = "2026-06-19",
+  dateModified = "2026-06-19",
+}: {
+  headline: string;
+  description: string;
+  path: string;
+  breadcrumbName: string;
+  datePublished?: string;
+  dateModified?: string;
+}) {
+  const url = `${SITE}${path}`;
+  return graph(
+    {
+      "@type": "Article",
+      headline,
+      description,
+      mainEntityOfPage: { "@type": "WebPage", "@id": url },
+      url,
+      author: { "@id": ORG_ID },
+      publisher: { "@id": ORG_ID },
+      datePublished,
+      dateModified,
+      inLanguage: "en-US",
+    },
+    {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: SITE },
+        { "@type": "ListItem", position: 2, name: breadcrumbName, item: url },
+      ],
+    },
+  );
+}
+
+/**
  * FAQPage for /faq, in plain text (mirrors the on-page accordion in
  * app/faq/page.tsx — keep the two in sync). Primarily an AI-citation /
  * GEO asset; Google restricts FAQ rich results to gov/health sites.

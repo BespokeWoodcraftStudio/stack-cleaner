@@ -94,7 +94,7 @@ export function InventoryClient() {
     <div className="container" style={{ paddingTop: 28, paddingBottom: 40 }}>
       <div className="row between wrap gap-3" style={{ marginBottom: 18 }}>
         <div className="stack gap-1">
-          <h1 style={{ fontSize: 26 }}>Your inventory</h1>
+          <h2 style={{ fontSize: 26 }}>Your inventory</h2>
           <div className="muted" style={{ fontSize: 14 }}>
             {isDemo
               ? "Exploring demo data: every skill, plugin, MCP server, and agent, split by where it lives."

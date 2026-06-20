@@ -1,20 +1,18 @@
-"use client";
-
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { Logo, Github } from "./icons";
+import { NavActiveLink } from "./NavActiveLink";
 
 const LINKS = [
   { href: "/", label: "Home", hideSm: true }, // logo already links home
   { href: "/setup", label: "Setup", hideSm: false },
   { href: "/inventory", label: "Inventory", hideSm: false },
+  { href: "/guide/clean-up-claude-code", label: "Guide", hideSm: true },
   { href: "/faq", label: "FAQ", hideSm: false },
 ];
 
 const REPO = "https://github.com/BespokeWoodcraftStudio/stack-cleaner";
 
 export function Nav() {
-  const path = usePathname();
   return (
     <header className="nav">
       <div className="container nav-inner">
@@ -23,14 +21,9 @@ export function Nav() {
           <span>Stack Cleaner</span>
         </Link>
         <nav className="nav-links">
-          {LINKS.map((l) => {
-            const active = l.href === "/" ? path === "/" : path.startsWith(l.href);
-            return (
-              <Link key={l.href} href={l.href} className={`nav-link${active ? " active" : ""}${l.hideSm ? " hide-sm" : ""}`}>
-                {l.label}
-              </Link>
-            );
-          })}
+          {LINKS.map((l) => (
+            <NavActiveLink key={l.href} href={l.href} label={l.label} hideSm={l.hideSm} />
+          ))}
           <a
             href={REPO} target="_blank" rel="noopener noreferrer"
             className="nav-link row gap-1" aria-label="GitHub repository"
